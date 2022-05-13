@@ -1,5 +1,14 @@
 import Session from "./Session";
-import { ClientConfig, Client } from "./types";
+import { Menu } from "./domains";
+
+export interface ClientConfig {
+  server: string | undefined;
+}
+
+export interface Client {
+  Session: Session;
+  Menu: Menu;
+}
 
 const createClient = (config: ClientConfig): Client => {
   const { server } = config;
@@ -12,6 +21,7 @@ const createClient = (config: ClientConfig): Client => {
 
   return {
     Session: session,
+    Menu: new Menu({ session }),
   };
 };
 

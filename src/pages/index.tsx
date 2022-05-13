@@ -1,51 +1,69 @@
-import { Route, Routes } from "react-router-dom";
-import { css, Global } from "@emotion/react";
+import { NavLink, Outlet, Route, Routes } from "react-router-dom";
 import styled from "@emotion/styled";
 
 import { Spinner } from "@app/components";
+import Menu from "./Menu";
+import Games from "./Games";
+
+function Introduction() {
+  return <code>React + Vite + Typescript + ESLint + Jotai + Router</code>;
+}
 
 function App() {
   return (
     <Container>
       <h1>Vazee Template</h1>
       <Spinner isLoading />
-      <Global styles={styles} />
+      <Navigation>
+        <NavLink to="/menu">Menu</NavLink>
+        <NavLink to="/games">Games</NavLink>
+      </Navigation>
+      <Outlet />
     </Container>
   );
 }
 
-const styles = css`
-  body {
-    margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
-      "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans",
-      "Helvetica Neue", sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+const Navigation = styled("nav")`
+  display: flex;
+
+  a {
+    color: white;
+    margin: 1em;
+
+    text-decoration: underline;
   }
 
-  #root {
-    isolation: isolate;
-    position: relative;
-    height: 100%;
+  .active {
+    color: #ffc600;
   }
 `;
 
 const Container = styled("main")`
-  background-color: #282c34;
-  min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+
+  min-height: 100vh;
+
   font-size: calc(10px + 2vmin);
   color: white;
+
+  background-color: #282c34;
+
+  > code {
+    text-align: center;
+    padding: 1em;
+  }
 `;
 
 function Pages() {
   return (
     <Routes>
-      <Route index element={<App />} />
+      <Route element={<App />}>
+        <Route index element={<Introduction />} />
+        <Route path="menu" element={<Menu />} />
+        <Route path="games" element={<Games />} />
+      </Route>
     </Routes>
   );
 }

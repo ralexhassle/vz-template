@@ -2,14 +2,6 @@ import Session from "./Session";
 
 import { METHODS } from "./constants";
 
-export interface ClientConfig {
-  server: string | undefined;
-}
-
-export interface Client {
-  Session: Session;
-}
-
 export interface SessionConfig {
   server: string;
 }
