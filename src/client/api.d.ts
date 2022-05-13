@@ -71,4 +71,10 @@ interface Wheel {
   wheelPrizes: WheelPrize[];
 }
 
+interface Scratch {
+  scratchCardCoverUrl: string;
+  scratchCardLostUrl: string;
+  scratchCardWonUrl: string;
+}
+
 export as namespace API;

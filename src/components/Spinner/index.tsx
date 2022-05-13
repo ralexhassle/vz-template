@@ -39,7 +39,7 @@ interface Props {
   color?: string;
   children?: React.ReactNode;
   size?: number;
-  Container?: React.ComponentType<unknown>;
+  Container?: React.ComponentType;
 }
 function Spinner(props: Props) {
   const {

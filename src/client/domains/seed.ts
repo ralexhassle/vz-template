@@ -1,3 +1,12 @@
+export const SCRATCH = {
+  scratchCardCoverUrl:
+    "https://storage.googleapis.com/apollon-assets-dev/bjorg/offers/1/scratch_card_cover.png",
+  scratchCardLostUrl:
+    "https://storage.googleapis.com/apollon-assets-dev/bjorg/offers/1/scratch_card_lost.png",
+  scratchCardWonUrl:
+    "https://storage.googleapis.com/apollon-assets-dev/bjorg/offers/1/scratch_card_win.png",
+};
+
 export const WHEEL = {
   prize: {
     prizeId: 7,
