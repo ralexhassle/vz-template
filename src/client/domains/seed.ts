@@ -1,4 +1,81 @@
-export default {
+export const WHEEL = {
+  prize: {
+    prizeId: 7,
+    label: "2 €",
+    illustrationUrl: null,
+    wheelIllustrationUrl:
+      "https://via.placeholder.com/200x200/DD0000/FFFFFF/?text=2%20€",
+    isLost: false,
+  },
+  wheelPrizes: [
+    {
+      prizeId: 5,
+      label: "0 €",
+      illustrationUrl: null,
+      wheelIllustrationUrl:
+        "https://via.placeholder.com/200x200/DD0000/FFFFFF/?text=0%20€",
+      isLost: true,
+    },
+    {
+      prizeId: 6,
+      label: "1 €",
+      illustrationUrl: null,
+      wheelIllustrationUrl:
+        "https://via.placeholder.com/200x200/FFFFFF/DD0000/?text=1%20€",
+      isLost: false,
+    },
+    {
+      prizeId: 7,
+      label: "2 €",
+      illustrationUrl: null,
+      wheelIllustrationUrl:
+        "https://via.placeholder.com/200x200/DD0000/FFFFFF/?text=2%20€",
+      isLost: false,
+    },
+    {
+      prizeId: 8,
+      label: "5 €",
+      illustrationUrl: null,
+      wheelIllustrationUrl:
+        "https://via.placeholder.com/200x200/FFFFFF/DD0000/?text=5%20€",
+      isLost: false,
+    },
+    {
+      prizeId: 9,
+      label: "10 €",
+      illustrationUrl: null,
+      wheelIllustrationUrl:
+        "https://via.placeholder.com/200x200/DD0000/FFFFFF/?text=10%20€",
+      isLost: false,
+    },
+    {
+      prizeId: 10,
+      label: "15 €",
+      illustrationUrl: null,
+      wheelIllustrationUrl:
+        "https://via.placeholder.com/200x200/FFFFFF/DD0000/?text=15%20€",
+      isLost: false,
+    },
+    {
+      prizeId: 11,
+      label: "20 €",
+      illustrationUrl: null,
+      wheelIllustrationUrl:
+        "https://via.placeholder.com/200x200/DD0000/FFFFFF/?text=20%20€",
+      isLost: false,
+    },
+    {
+      prizeId: 12,
+      label: "25 €",
+      illustrationUrl: null,
+      wheelIllustrationUrl:
+        "https://via.placeholder.com/200x200/FFFFFF/DD0000/?text=25%20€",
+      isLost: false,
+    },
+  ],
+};
+
+export const MENU = {
   menuId: 684,
   categories: [
     {

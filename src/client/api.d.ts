@@ -50,4 +50,25 @@ interface Menu {
   categories: Category[];
 }
 
+interface WheelPrize {
+  prizeId: number;
+  label: string;
+  illustrationUrl: string | null;
+  wheelIllustrationUrl: string;
+  isLost: boolean;
+}
+
+interface Prize {
+  prizeId: number;
+  label: string;
+  illustrationUrl: string | null;
+  wheelIllustrationUrl: string;
+  isLost: boolean;
+}
+
+interface Wheel {
+  prize: Prize | null;
+  wheelPrizes: WheelPrize[];
+}
+
 export as namespace API;

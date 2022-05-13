@@ -18,12 +18,12 @@ const selectChildren = (id: number) => (entity: APP.EntityType) =>
   entity.parentId === id;
 
 const entitiesAtom = atom((get) => {
-  const entities = new Map<string, APP.EntityType[]>();
+  const entities = new Map<number, APP.EntityType[]>();
   const entitiesArray = [...get(productsAtom), ...get(categoriesAtom)];
 
   get(categoriesAtom).forEach((category) => {
     const children = entitiesArray.filter(selectChildren(category.id));
-    entities.set(category.value.categoryId.toString(), children);
+    entities.set(category.value.categoryId, children);
   });
 
   return entities;
@@ -124,7 +124,7 @@ const ProductContainer = styled("div")`
 const childrenAtomFamily = atomFamily(
   (parentId: number) =>
     atom((get) => {
-      const children = get(entitiesAtom).get(parentId.toString());
+      const children = get(entitiesAtom).get(parentId);
 
       if (children && children.length > 0) {
         return children;

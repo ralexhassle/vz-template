@@ -1,13 +1,13 @@
 /* eslint-disable class-methods-use-this */
 import Domain from "./Domain";
 
-import { MENU } from "./seed";
+import { WHEEL } from "./seed";
 
 class Menu extends Domain {
-  public async getMenu() {
-    return new Promise<API.Menu>((resolve) => {
+  public async getWheelPrizes() {
+    return new Promise<API.Wheel>((resolve) => {
       setTimeout(() => {
-        resolve(MENU);
+        resolve(WHEEL);
       }, 1000);
     });
   }
