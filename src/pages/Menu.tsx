@@ -159,10 +159,6 @@ function Tree() {
 }
 
 function Menu() {
-  useEffect(() => {
-    client.Menu.getMenu();
-  }, []);
-
   return (
     <Root>
       <Title>Menu</Title>

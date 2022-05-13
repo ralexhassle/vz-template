@@ -44,6 +44,7 @@ const Container = styled("main")`
   align-items: center;
 
   min-height: 100vh;
+  padding: 1em;
 
   font-size: calc(10px + 2vmin);
   color: white;
@@ -52,7 +53,6 @@ const Container = styled("main")`
 
   > code {
     text-align: center;
-    padding: 1em;
   }
 `;
 
