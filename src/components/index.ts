@@ -4,3 +4,4 @@ export { default as Checkbox } from "./Checkbox";
 export { default as Scenery } from "./Scenery";
 export { default as Wheel } from "./Wheel";
 export { default as Scratch } from "./Scratch";
+export { default as Dialog } from "./Dialog";

@@ -1,8 +1,8 @@
-import { Suspense } from "react";
+import { Fragment, Suspense, useReducer } from "react";
 import styled from "@emotion/styled";
 import { atom, useAtom } from "jotai";
 
-import { Wheel, Scratch } from "@components";
+import { Wheel, Scratch, Dialog } from "@components";
 import { client } from "@app/config";
 
 const wheelGameAtom = atom(async () => client.Game.getWheelPrizes());
@@ -15,54 +15,52 @@ function predicate(prize: API.WheelPrize | null) {
     prize === null ? item.isLost : item.prizeId === prize.prizeId;
 }
 
-const onWheelFinished = () => {
-  // eslint-disable-next-line no-alert
-  alert("Finished!");
-};
-
 function WheelGame() {
   const [{ prize, wheelPrizes }] = useAtom(wheelGameAtom);
+  const [isFinished, toggle] = useReducer((s) => !s, false);
 
   return (
-    <Wheel
-      height={PANNEL_HEIGHT}
-      width={PANNEL_WIDTH}
-      data={wheelPrizes}
-      predicate={predicate(prize)}
-      onFinished={onWheelFinished}
-    >
-      {(pannel) => (
-        <PrizeImage
-          src={pannel.item.wheelIllustrationUrl}
-          draggable={false}
-          loading="lazy"
-        />
-      )}
-    </Wheel>
+    <Fragment>
+      <Wheel
+        height={PANNEL_HEIGHT}
+        width={PANNEL_WIDTH}
+        data={wheelPrizes}
+        predicate={predicate(prize)}
+        onFinished={toggle}
+      >
+        {(pannel) => (
+          <PrizeImage
+            src={pannel.item.wheelIllustrationUrl}
+            draggable={false}
+            loading="lazy"
+          />
+        )}
+      </Wheel>
+      {isFinished && <Dialog message="Finished !" dismiss={toggle} />}
+    </Fragment>
   );
 }
 
 const scratchGameAtom = atom(async () => client.Game.getScratchIllustrations());
-
-const onScratchFinished = () => {
-  // eslint-disable-next-line no-alert
-  alert("Finished!");
-};
 
 const SCRATCH_CARD_HEIGHT = 400;
 const SCRATCH_CARD_WIDTH = 300;
 
 function ScratchGame() {
   const [{ scratchCardCoverUrl, scratchCardWonUrl }] = useAtom(scratchGameAtom);
+  const [isFinished, toggle] = useReducer((s) => !s, false);
 
   return (
-    <Scratch
-      onFinished={onScratchFinished}
-      coverUrl={scratchCardCoverUrl}
-      hiddenUrl={scratchCardWonUrl}
-      width={SCRATCH_CARD_WIDTH}
-      height={SCRATCH_CARD_HEIGHT}
-    />
+    <Fragment>
+      <Scratch
+        onFinished={toggle}
+        coverUrl={scratchCardCoverUrl}
+        hiddenUrl={scratchCardWonUrl}
+        width={SCRATCH_CARD_WIDTH}
+        height={SCRATCH_CARD_HEIGHT}
+      />
+      {isFinished && <Dialog message="Finished !" dismiss={toggle} />}
+    </Fragment>
   );
 }
 
@@ -76,9 +74,6 @@ function Games() {
     <Root>
       <Suspense fallback="loading...">
         <WheelGame />
-      </Suspense>
-
-      <Suspense fallback="loading...">
         <ScratchGame />
       </Suspense>
     </Root>
