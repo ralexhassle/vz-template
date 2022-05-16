@@ -179,6 +179,8 @@ const Root = styled("div")`
   display: flex;
   justify-content: center;
 
+  user-select: none;
+
   --outer-arrow-width: 38px;
   --outer-arrow-height: 12px;
   --outer-arrow-color: var(--wheel-border-color);

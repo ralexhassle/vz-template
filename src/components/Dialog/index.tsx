@@ -6,16 +6,30 @@ import { PORTALS } from "@constants";
 import Portal from "../Portal";
 
 interface Props {
-  message: string;
+  message?: string;
+  children?: React.ReactNode;
   dismiss: VoidFunction;
 }
 
-function Dialog({ message, dismiss }: Props) {
+function Dialog({ message, children, dismiss }: Props) {
   const { scale } = useSpring<{ scale: number }>({
     scale: 1,
     from: { scale: 0.4 },
     config: config.stiff,
   });
+
+  if (children) {
+    return (
+      <Portal id="dialog">
+        <DialogContainer>
+          <AnimatedDialog style={{ scale }}>
+            {children}
+            <DismissButton onClick={dismiss}>DISMISS</DismissButton>
+          </AnimatedDialog>
+        </DialogContainer>
+      </Portal>
+    );
+  }
 
   return (
     <Portal id="dialog">
@@ -32,7 +46,7 @@ function Dialog({ message, dismiss }: Props) {
 const Button = styled("button")`
   text-transform: uppercase;
 
-  padding: 1em 2em;
+  padding: 0.5em 1em;
   width: 100%;
 
   border: none;

@@ -80,6 +80,9 @@ function Games() {
   );
 }
 
-const Root = styled("div")``;
+const Root = styled("div")`
+  display: flex;
+  flex-wrap: wrap;
+`;
 
 export default Games;

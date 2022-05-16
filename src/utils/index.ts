@@ -26,3 +26,29 @@ export function isError(error: unknown): error is Error {
 export function isEqual(a: string, b: string) {
   return a === b;
 }
+
+type EmptyString = "";
+type EmptyObject = Record<string, never>;
+type EmptyArray = never[];
+type Empty = EmptyArray | EmptyObject | EmptyString;
+
+export const isEmpty = <T extends string | unknown[] | Record<string, unknown>>(
+  subject: T | Empty
+): subject is Bottom<T> => {
+  switch (typeof subject) {
+    case "object":
+      return Object.keys(subject).length === 0;
+    case "string":
+      return subject === "";
+    default:
+      return false;
+  }
+};
+
+type Bottom<T> = T extends string
+  ? EmptyString
+  : T extends unknown[]
+  ? EmptyArray
+  : T extends Record<string, unknown>
+  ? EmptyObject
+  : never;
