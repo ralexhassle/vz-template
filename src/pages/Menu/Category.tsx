@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
-import { Fragment, memo, useReducer, useState } from "react";
+import { Fragment, memo, useCallback, useReducer, useState } from "react";
 import { useUpdateAtom } from "jotai/utils";
-import { useAtom } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 import styled from "@emotion/styled";
 
 import { Dialog } from "@components";
@@ -9,38 +9,24 @@ import { Dialog } from "@components";
 import Product from "./Product";
 import {
   categoriesAtomFamily,
+  categoriesStatusFamily,
   childrenAtomFamily,
-  updateEntityAtom,
+  updateCategoryAtom,
 } from "./tree";
 
-interface CategoryProps {
+interface Props {
   category: API.Category;
+  onClick: VoidFunction;
+  isOpen: boolean;
 }
-function Category(props: CategoryProps) {
-  const { category } = props;
-
-  const [isDialogOpen, toggle] = useReducer((s) => !s, false);
-
-  const [{ isOpen }, toggleCategory] = useAtom(categoriesAtomFamily(category));
-
-  const onClick = () => {
-    toggleCategory((prev) => ({ ...prev, isOpen: !isOpen }));
-  };
-
+function Category({ category, onClick, isOpen }: Props) {
   return (
     <CategoryContainer>
-      <button onClick={toggle} type="button">
-        editer
-      </button>
+      <EditButton {...{ category }} />
       <button onClick={onClick} type="button">
         {category.description}
       </button>
       {isOpen && <Children parentId={category.categoryId} />}
-      {isDialogOpen && (
-        <Dialog dismiss={toggle}>
-          <EditCategory category={category} />
-        </Dialog>
-      )}
     </CategoryContainer>
   );
 }
@@ -49,21 +35,37 @@ const CategoryContainer = styled("div")`
   padding: 0.25em 0.5em;
 `;
 
-interface CategoryProps {
+interface EditButtonProps {
   category: API.Category;
 }
-function EditCategory({ category }: CategoryProps) {
+function EditButton({ category }: EditButtonProps) {
+  const [isDialogOpen, toggle] = useReducer((s) => !s, false);
+
+  return (
+    <Fragment>
+      <button onClick={toggle} type="button">
+        editer
+      </button>
+      {isDialogOpen && (
+        <Dialog dismiss={toggle}>
+          <EditCategory {...{ category, toggle }} />
+        </Dialog>
+      )}
+    </Fragment>
+  );
+}
+
+interface EditCategoryProps {
+  category: API.Category;
+  toggle: VoidFunction;
+}
+function EditCategory({ category, toggle }: EditCategoryProps) {
   const [description, set] = useState(category.description);
-  const update = useUpdateAtom(updateEntityAtom);
+  const update = useUpdateAtom(updateCategoryAtom);
 
   const onClick = () => {
-    update({
-      type: "update/category/description",
-      payload: {
-        id: category.categoryId,
-        description,
-      },
-    });
+    update({ ...category, description });
+    toggle();
   };
 
   return (
@@ -95,11 +97,11 @@ function Children({ parentId }: ChildrenProps) {
     <Fragment>
       {entities.map((entity) => {
         if (entity.type === "category") {
-          return <Category key={entity.id} category={entity.value} />;
+          return <CategoryWithValue key={entity.id} categoryId={entity.id} />;
         }
 
         if (entity.type === "product") {
-          return <Product key={entity.id} product={entity.value} />;
+          return <Product key={entity.id} productId={entity.id} />;
         }
 
         return null;
@@ -108,4 +110,31 @@ function Children({ parentId }: ChildrenProps) {
   );
 }
 
-export default Category;
+interface OwnProps {
+  categoryId: API.Category["categoryId"];
+}
+const withValue = (Component: React.FC<Props>) => {
+  const MemoComponent = memo(Component);
+
+  function Wrapper({ categoryId }: OwnProps) {
+    const { value: category } = useAtomValue(categoriesAtomFamily(categoryId));
+
+    const [{ isOpen }, toggleCategory] = useAtom(
+      categoriesStatusFamily(category.categoryId)
+    );
+
+    const onClick = useCallback(() => {
+      toggleCategory((prev) => ({ ...prev, isOpen: !isOpen }));
+    }, [isOpen, toggleCategory]);
+
+    return (
+      <MemoComponent category={category} onClick={onClick} isOpen={isOpen} />
+    );
+  }
+
+  return memo(Wrapper);
+};
+
+const CategoryWithValue = withValue(Category);
+
+export default CategoryWithValue;

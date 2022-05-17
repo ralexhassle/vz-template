@@ -14,7 +14,7 @@ function RootTree() {
   return (
     <Fragment>
       {categories.map((category) => (
-        <Category key={category.id} category={category.value} />
+        <Category key={category.id} categoryId={category.id} />
       ))}
     </Fragment>
   );
