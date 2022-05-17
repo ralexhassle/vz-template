@@ -127,3 +127,11 @@ export const updateProductAtom = atom(
     }));
   }
 );
+
+export const deleteProductAtom = atom(
+  null,
+  (get, set, product: API.Product) => {
+    const { [product.productId]: _, ...products } = get(productsAtom);
+    set(productsAtom, products);
+  }
+);

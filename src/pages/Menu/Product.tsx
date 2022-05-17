@@ -5,7 +5,11 @@ import { useAtomValue } from "jotai";
 import { useUpdateAtom } from "jotai/utils";
 import React, { Fragment, memo, useReducer, useState } from "react";
 
-import { productsAtomFamily, updateProductAtom } from "./tree";
+import {
+  deleteProductAtom,
+  productsAtomFamily,
+  updateProductAtom,
+} from "./tree";
 
 interface Props {
   product: API.Product;
@@ -14,6 +18,7 @@ function Product(props: Props) {
   const { product } = props;
   return (
     <ProductContainer>
+      <DeleteButton {...{ product }} />
       <EditButton {...{ product }} />
       {product.label}
     </ProductContainer>
@@ -23,6 +28,23 @@ function Product(props: Props) {
 const ProductContainer = styled("div")`
   padding: 0.25em 0.5em;
 `;
+
+interface DeleteButtonProps {
+  product: API.Product;
+}
+function DeleteButton({ product }: DeleteButtonProps) {
+  const deleteProduct = useUpdateAtom(deleteProductAtom);
+
+  const onClick = () => {
+    deleteProduct(product);
+  };
+
+  return (
+    <button onClick={onClick} type="button">
+      supprimer
+    </button>
+  );
+}
 
 interface EditButtonProps {
   product: API.Product;
