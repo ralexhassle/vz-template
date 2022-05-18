@@ -5,6 +5,25 @@ import { PORTALS } from "@constants";
 
 import Portal from "../Portal";
 
+function CloseIcon() {
+  return (
+    <svg
+      stroke="currentColor"
+      fill="currentColor"
+      strokeWidth="0"
+      viewBox="0 0 24 24"
+      height="2em"
+      width="2em"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <g>
+        <path fill="none" d="M0 0h24v24H0z" />
+        <path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm0-11.414L9.172 7.757 7.757 9.172 10.586 12l-2.829 2.828 1.415 1.415L12 13.414l2.828 2.829 1.415-1.415L13.414 12l2.829-2.828-1.415-1.415L12 10.586z" />
+      </g>
+    </svg>
+  );
+}
+
 interface Props {
   message?: string;
   children?: React.ReactNode;
@@ -24,7 +43,9 @@ function Dialog({ message, children, dismiss }: Props) {
         <DialogContainer>
           <AnimatedDialog style={{ scale }}>
             {children}
-            <DismissButton onClick={dismiss}>DISMISS</DismissButton>
+            <DismissButton onClick={dismiss}>
+              <CloseIcon />
+            </DismissButton>
           </AnimatedDialog>
         </DialogContainer>
       </Portal>
@@ -54,7 +75,15 @@ const Button = styled("button")`
   cursor: pointer;
 `;
 
-const DismissButton = styled(Button)``;
+const DismissButton = styled(Button)`
+  position: absolute;
+  top: 0;
+  right: 0;
+
+  padding: 0.5em;
+  width: auto;
+  background: none;
+`;
 
 const DialogContainer = styled("div")`
   display: flex;
@@ -74,6 +103,8 @@ const DialogContainer = styled("div")`
 `;
 
 const DialogContent = styled("div")`
+  position: relative;
+
   width: calc(100% - 2em);
   max-width: 400px;
   max-height: 80vh;

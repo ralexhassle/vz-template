@@ -19,12 +19,34 @@ function EditProduct({ product, toggle }: EditProductProps) {
   };
 
   return (
-    <Fragment>
-      <input value={label} onChange={(e) => set(e.target.value)} />
+    <EditProductContainer>
+      <TextInput value={label} onChange={(e) => set(e.target.value)} />
       <SaveButton onClick={onClick}>SAVE</SaveButton>
-    </Fragment>
+    </EditProductContainer>
   );
 }
+
+const TextInput = styled("input")`
+  width: 100%;
+  padding: 0.5em;
+  margin-bottom: 1em;
+`;
+
+const EditProductContainer = styled("form")`
+  display: flex;
+  flex-direction: column;
+`;
+
+const SaveButton = styled("button")`
+  text-transform: uppercase;
+
+  padding: 0.5em 1em;
+  width: 100%;
+
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+`;
 
 function EditIcon() {
   return (
@@ -40,17 +62,6 @@ function EditIcon() {
     </svg>
   );
 }
-
-const SaveButton = styled("button")`
-  text-transform: uppercase;
-
-  padding: 0.5em 1em;
-  width: 100%;
-
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-`;
 
 interface EditButtonProps {
   product: API.Product;

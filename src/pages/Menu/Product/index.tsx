@@ -22,7 +22,7 @@ function Product(props: Props) {
 }
 
 const ProductContainer = styled("div")`
-  padding: 0.25em 0.5em;
+  display: flex;
 `;
 
 interface OwnProps {

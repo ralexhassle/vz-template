@@ -64,14 +64,25 @@ function EditCategory({ category, toggle }: EditCategoryProps) {
   };
 
   return (
-    <Fragment>
-      <input value={description} onChange={(e) => set(e.target.value)} />
-      <Button onClick={onClick}>SAVE</Button>
-    </Fragment>
+    <EditCategoryContainer>
+      <TextInput value={description} onChange={(e) => set(e.target.value)} />
+      <SaveButton onClick={onClick}>SAVE</SaveButton>
+    </EditCategoryContainer>
   );
 }
 
-const Button = styled("button")`
+const TextInput = styled("input")`
+  width: 100%;
+  padding: 0.5em;
+  margin-bottom: 1em;
+`;
+
+const EditCategoryContainer = styled("form")`
+  display: flex;
+  flex-direction: column;
+`;
+
+const SaveButton = styled("button")`
   text-transform: uppercase;
 
   padding: 0.5em 1em;

@@ -3,6 +3,7 @@ import { Fragment, memo, useCallback } from "react";
 import { useAtom, useAtomValue } from "jotai";
 import styled from "@emotion/styled";
 
+import { isEmpty } from "@utils";
 import {
   categoriesAtomFamily,
   categoriesStatusFamily,
@@ -11,6 +12,8 @@ import {
 
 import EditButton from "./EditButton";
 import Product from "../Product";
+import AddProduct from "../Product/AddButton";
+import AddCategory from "./AddButton";
 
 const ascendingOrder = (a: APP.EntityType, b: APP.EntityType) =>
   a.value.order - b.value.order;
@@ -21,22 +24,48 @@ interface ChildrenProps {
 function Children({ parentId }: ChildrenProps) {
   const [entities] = useAtom(childrenAtomFamily(parentId));
 
+  if (isEmpty(entities)) {
+    return (
+      <ChildrenContainer>
+        <AddCategory parentId={parentId} />
+        <AddProduct categoryId={parentId} />
+      </ChildrenContainer>
+    );
+  }
+
   return (
-    <Fragment>
-      {entities.sort(ascendingOrder).map(({ id, type }) => {
+    <ChildrenContainer>
+      {entities.sort(ascendingOrder).map(({ id, type }, index) => {
         if (type === "category") {
-          return <CategoryWithValue key={id} categoryId={id} />;
+          return (
+            <Fragment key={id}>
+              {index === 0 && <AddCategory parentId={parentId} />}
+              <CategoryWithValue categoryId={id} />
+            </Fragment>
+          );
         }
 
         if (type === "product") {
-          return <Product key={id} productId={id} />;
+          return (
+            <Fragment key={id}>
+              {index === 0 && <AddProduct categoryId={parentId} />}
+              <Product productId={id} />
+            </Fragment>
+          );
         }
 
         return null;
       })}
-    </Fragment>
+    </ChildrenContainer>
   );
 }
+
+const ChildrenContainer = styled("div")`
+  display: flex;
+  flex-direction: column;
+
+  padding: 0.25em 0.5em;
+`;
 
 interface Props {
   category: API.Category;
@@ -46,17 +75,24 @@ interface Props {
 function Category({ category, onClick, isOpen }: Props) {
   return (
     <CategoryContainer>
-      <EditButton {...{ category }} />
-      <button onClick={onClick} type="button">
-        {category.description}
-      </button>
+      <Description>
+        <EditButton {...{ category }} />
+        <button onClick={onClick} type="button">
+          {category.description}
+        </button>
+      </Description>
       {isOpen && <Children parentId={category.categoryId} />}
     </CategoryContainer>
   );
 }
 
+const Description = styled("div")`
+  display: flex;
+`;
+
 const CategoryContainer = styled("div")`
-  padding: 0.25em 0.5em;
+  display: flex;
+  flex-direction: column;
 `;
 
 interface OwnProps {
