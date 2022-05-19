@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
 import styled from "@emotion/styled";
-import { Fragment, Suspense, useEffect } from "react";
+import { Suspense, useEffect } from "react";
 import { useAtom, useAtomValue } from "jotai";
 import { useUpdateAtom } from "jotai/utils";
 
@@ -13,14 +13,22 @@ function RootTree() {
   const categories = useAtomValue(rootCategoriesAtom);
 
   return (
-    <Fragment>
+    <RootTreeContainer>
       <Create.Category parentId={null} />
       {categories.map(({ id }) => (
         <Category categoryId={id} key={id} />
       ))}
-    </Fragment>
+    </RootTreeContainer>
   );
 }
+
+const RootTreeContainer = styled("div")`
+  width: 100%;
+
+  > *:not(:last-child) {
+    margin-bottom: 0.25em;
+  }
+`;
 
 function Tree() {
   const [menu] = useAtom(menuAtom);

@@ -23,6 +23,10 @@ function Product(props: Props) {
 
 const ProductContainer = styled("div")`
   display: flex;
+
+  > *:not(:last-child) {
+    margin-right: 0.25em;
+  }
 `;
 
 interface OwnProps {

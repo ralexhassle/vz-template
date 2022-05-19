@@ -83,6 +83,10 @@ const DismissButton = styled(Button)`
   padding: 0.5em;
   width: auto;
   background: none;
+
+  > svg {
+    color: red;
+  }
 `;
 
 const DialogContainer = styled("div")`
@@ -106,9 +110,8 @@ const DialogContent = styled("div")`
   position: relative;
 
   width: calc(100% - 2em);
-  max-width: 400px;
   max-height: 80vh;
-  padding: 2em;
+  padding: 3em 1em 2em 1em;
 
   overflow-y: auto;
   border-radius: 1em;

@@ -41,7 +41,6 @@ const Navigation = styled("nav")`
 const Container = styled("main")`
   display: flex;
   flex-direction: column;
-  align-items: center;
 
   min-height: 100vh;
   padding: 1em;

@@ -26,6 +26,10 @@ const styles = css`
     position: relative;
     height: 100%;
   }
+
+  #dialog {
+    font-size: calc(10px + 2vmin);
+  }
 `;
 
 const root = createRoot(document.getElementById("root") as HTMLElement);

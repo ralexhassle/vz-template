@@ -55,6 +55,8 @@ function Spinner(props: Props) {
     isLoading ? STATUS.LOADING : STATUS.READY
   );
 
+  console.log(isLoading);
+
   /**
    * Effect to restart the spinner when isLoading prop changes
    * status is SUCCESS only after spring is on rest

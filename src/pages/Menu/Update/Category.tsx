@@ -21,10 +21,10 @@ function UpdateCategoryDialog({ category, toggle }: UpdateCategoryDialogProps) {
   };
 
   return (
-    <EditCategoryContainer>
+    <UpdateCategoryContainer>
       <TextInput value={description} onChange={(e) => set(e.target.value)} />
       <SaveButton onClick={onClick}>SAVE</SaveButton>
-    </EditCategoryContainer>
+    </UpdateCategoryContainer>
   );
 }
 
@@ -34,7 +34,7 @@ const TextInput = styled("input")`
   margin-bottom: 1em;
 `;
 
-const EditCategoryContainer = styled("form")`
+const UpdateCategoryContainer = styled("form")`
   display: flex;
   flex-direction: column;
 `;
@@ -91,6 +91,8 @@ const Button = styled("button")`
   border: none;
   border-radius: 4px;
   cursor: pointer;
+
+  color: blue;
 `;
 
 export default UpdateCategory;

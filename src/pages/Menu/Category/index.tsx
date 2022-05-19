@@ -57,6 +57,10 @@ const ChildrenContainer = styled("div")`
   flex-direction: column;
 
   padding: 0.25em 0.5em;
+
+  > *:not(:last-child) {
+    margin-bottom: 0.25em;
+  }
 `;
 
 interface Props {
@@ -68,11 +72,11 @@ function Category({ category, onClick, isOpen }: Props) {
   return (
     <CategoryContainer>
       <Description>
-        <Update.Category {...{ category }} />
         <Delete.Category {...{ category }} />
-        <button onClick={onClick} type="button">
+        <Update.Category {...{ category }} />
+        <DescriptionButton onClick={onClick} type="button">
           {category.description}
-        </button>
+        </DescriptionButton>
       </Description>
       {isOpen && <Children parentId={category.categoryId} />}
     </CategoryContainer>
@@ -81,11 +85,22 @@ function Category({ category, onClick, isOpen }: Props) {
 
 const Description = styled("div")`
   display: flex;
+
+  > *:not(:last-child) {
+    margin-right: 0.25em;
+  }
 `;
 
 const CategoryContainer = styled("div")`
   display: flex;
   flex-direction: column;
+`;
+
+const DescriptionButton = styled("button")`
+  border: none;
+  border-radius: 4px;
+  padding: 0.25em 0.5em;
+  cursor: pointer;
 `;
 
 interface OwnProps {

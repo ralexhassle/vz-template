@@ -133,7 +133,7 @@ function CreateProduct({ categoryId }: Props) {
     <Fragment>
       <Button onClick={toggleDialog} type="button">
         <AddIcon />
-        <span>Add Product</span>
+        <span>Product</span>
       </Button>
       {isDialogOpen && (
         <Dialog dismiss={toggleDialog}>
@@ -157,6 +157,7 @@ const Button = styled("button")`
 
   > svg {
     color: green;
+    margin-right: 0.5em;
   }
 `;
 
