@@ -135,3 +135,11 @@ export const deleteProductAtom = atom(
     set(productsAtom, products);
   }
 );
+
+export const deleteCategoryAtom = atom(
+  null,
+  (get, set, category: API.Category) => {
+    const { [category.categoryId]: _, ...categories } = get(categoriesAtom);
+    set(categoriesAtom, categories);
+  }
+);

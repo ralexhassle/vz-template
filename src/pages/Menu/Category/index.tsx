@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
-import { Fragment, memo, useCallback } from "react";
+import { memo, useCallback } from "react";
 import { useAtom, useAtomValue } from "jotai";
 import styled from "@emotion/styled";
 
@@ -10,10 +10,10 @@ import {
   childrenAtomFamily,
 } from "../tree";
 
-import EditButton from "./EditButton";
+import Update from "../Update";
 import Product from "../Product";
-import AddProduct from "../Product/AddButton";
-import AddCategory from "./AddButton";
+import Create from "../Create";
+import Delete from "../Delete";
 
 const ascendingOrder = (a: APP.EntityType, b: APP.EntityType) =>
   a.value.order - b.value.order;
@@ -27,31 +27,23 @@ function Children({ parentId }: ChildrenProps) {
   if (isEmpty(entities)) {
     return (
       <ChildrenContainer>
-        <AddCategory parentId={parentId} />
-        <AddProduct categoryId={parentId} />
+        <Create.Category parentId={parentId} />
+        <Create.Product categoryId={parentId} />
       </ChildrenContainer>
     );
   }
 
   return (
     <ChildrenContainer>
-      {entities.sort(ascendingOrder).map(({ id, type }, index) => {
+      <Create.Category parentId={parentId} />
+      <Create.Product categoryId={parentId} />
+      {entities.sort(ascendingOrder).map(({ id, type }) => {
         if (type === "category") {
-          return (
-            <Fragment key={id}>
-              {index === 0 && <AddCategory parentId={parentId} />}
-              <CategoryWithValue categoryId={id} />
-            </Fragment>
-          );
+          return <CategoryWithValue categoryId={id} key={id} />;
         }
 
         if (type === "product") {
-          return (
-            <Fragment key={id}>
-              {index === 0 && <AddProduct categoryId={parentId} />}
-              <Product productId={id} />
-            </Fragment>
-          );
+          return <Product productId={id} key={id} />;
         }
 
         return null;
@@ -76,7 +68,8 @@ function Category({ category, onClick, isOpen }: Props) {
   return (
     <CategoryContainer>
       <Description>
-        <EditButton {...{ category }} />
+        <Update.Category {...{ category }} />
+        <Delete.Category {...{ category }} />
         <button onClick={onClick} type="button">
           {category.description}
         </button>

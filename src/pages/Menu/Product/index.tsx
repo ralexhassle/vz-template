@@ -3,9 +3,9 @@ import styled from "@emotion/styled";
 import { useAtomValue } from "jotai";
 import React, { memo } from "react";
 
-import DeleteButton from "./DeleteButton";
-import EditButton from "./EditButton";
 import { productsAtomFamily } from "../tree";
+import Delete from "../Delete";
+import Update from "../Update";
 
 interface Props {
   product: API.Product;
@@ -14,8 +14,8 @@ function Product(props: Props) {
   const { product } = props;
   return (
     <ProductContainer>
-      <DeleteButton {...{ product }} />
-      <EditButton {...{ product }} />
+      <Delete.Product {...{ product }} />
+      <Update.Product {...{ product }} />
       {product.label}
     </ProductContainer>
   );

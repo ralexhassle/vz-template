@@ -5,11 +5,11 @@ import { useUpdateAtom } from "jotai/utils";
 import { Dialog } from "@app/components";
 import { updateProductAtom } from "../tree";
 
-interface EditProductProps {
+interface UpdateProductDialogProps {
   product: API.Product;
   toggle: VoidFunction;
 }
-function EditProduct({ product, toggle }: EditProductProps) {
+function UpdateProductDialog({ product, toggle }: UpdateProductDialogProps) {
   const [label, set] = useState(product.label);
   const update = useUpdateAtom(updateProductAtom);
 
@@ -19,10 +19,10 @@ function EditProduct({ product, toggle }: EditProductProps) {
   };
 
   return (
-    <EditProductContainer>
+    <UpdateProductDialogContainer>
       <TextInput value={label} onChange={(e) => set(e.target.value)} />
       <SaveButton onClick={onClick}>SAVE</SaveButton>
-    </EditProductContainer>
+    </UpdateProductDialogContainer>
   );
 }
 
@@ -32,7 +32,7 @@ const TextInput = styled("input")`
   margin-bottom: 1em;
 `;
 
-const EditProductContainer = styled("form")`
+const UpdateProductDialogContainer = styled("form")`
   display: flex;
   flex-direction: column;
 `;
@@ -48,7 +48,7 @@ const SaveButton = styled("button")`
   cursor: pointer;
 `;
 
-function EditIcon() {
+function UpdateIcon() {
   return (
     <svg
       stroke="currentColor"
@@ -63,20 +63,20 @@ function EditIcon() {
   );
 }
 
-interface EditButtonProps {
+interface Props {
   product: API.Product;
 }
-function EditButton({ product }: EditButtonProps) {
+function UpdateProduct({ product }: Props) {
   const [isDialogOpen, toggle] = useReducer((s) => !s, false);
 
   return (
     <Fragment>
       <Button onClick={toggle} type="button">
-        <EditIcon />
+        <UpdateIcon />
       </Button>
       {isDialogOpen && (
         <Dialog dismiss={toggle}>
-          <EditProduct {...{ product, toggle }} />
+          <UpdateProductDialog {...{ product, toggle }} />
         </Dialog>
       )}
     </Fragment>
@@ -91,4 +91,4 @@ const Button = styled("button")`
   cursor: pointer;
 `;
 
-export default EditButton;
+export default UpdateProduct;

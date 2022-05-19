@@ -18,10 +18,10 @@ function DeleteIcon() {
   );
 }
 
-interface DeleteButtonProps {
+interface Props {
   product: API.Product;
 }
-function DeleteButton({ product }: DeleteButtonProps) {
+function DeleteProduct({ product }: Props) {
   const deleteProduct = useUpdateAtom(deleteProductAtom);
 
   const onClick = () => {
@@ -44,4 +44,4 @@ const Button = styled("button")`
   color: red;
 `;
 
-export default DeleteButton;
+export default DeleteProduct;

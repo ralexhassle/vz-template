@@ -23,7 +23,7 @@ class Menu extends Domain {
           ...product,
           productId: random(10000, 99999),
         });
-      }, 1000);
+      }, 3000);
     });
   }
 

@@ -78,13 +78,8 @@ function Spinner(props: Props) {
     leave: { opacity: 1 },
     config: { duration: 500 },
     onRest: () => {
-      if (!isMounted()) {
-        return;
-      }
-
-      if (!isLoading) {
-        set(STATUS.SUCCESS);
-      }
+      if (!isMounted()) return;
+      if (!isLoading) set(STATUS.SUCCESS);
     },
   });
 

@@ -5,6 +5,7 @@ import { useAtom, useAtomValue } from "jotai";
 import { useUpdateAtom } from "jotai/utils";
 
 import Category from "./Category";
+import Create from "./Create";
 
 import { createEntitiesAtom, rootCategoriesAtom, menuAtom } from "./tree";
 
@@ -13,8 +14,9 @@ function RootTree() {
 
   return (
     <Fragment>
-      {categories.map((category) => (
-        <Category key={category.id} categoryId={category.id} />
+      <Create.Category parentId={null} />
+      {categories.map(({ id }) => (
+        <Category categoryId={id} key={id} />
       ))}
     </Fragment>
   );
