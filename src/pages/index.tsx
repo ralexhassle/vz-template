@@ -1,7 +1,6 @@
 import { NavLink, Outlet, Route, Routes } from "react-router-dom";
 import styled from "@emotion/styled";
 
-import { Spinner } from "@app/components";
 import Menu from "./Menu";
 import Games from "./Games";
 
@@ -13,7 +12,6 @@ function App() {
   return (
     <Container>
       <h1>Vazee Template</h1>
-      <Spinner isLoading />
       <Navigation>
         <NavLink to="/menu">Menu</NavLink>
         <NavLink to="/games">Games</NavLink>

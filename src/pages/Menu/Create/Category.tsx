@@ -1,12 +1,4 @@
-import {
-  FormEvent,
-  Fragment,
-  useDeferredValue,
-  useEffect,
-  useReducer,
-  useState,
-  useTransition,
-} from "react";
+import { FormEvent, Fragment, useEffect, useReducer, useState } from "react";
 import { atom, useAtom } from "jotai";
 import { useUpdateAtom } from "jotai/utils";
 import styled from "@emotion/styled";
@@ -52,14 +44,11 @@ function AddCategoryDialog({ toggleDialog, parentId }: AddProductProps) {
   const [description, set] = useState("");
   const [status, setStatus] = useAtom(postCategoryStatusAtom);
   const postCategory = useUpdateAtom(postCategoryAtom);
-  const deferredStatus = useDeferredValue(status);
 
-  useEffect(() => {
-    if (deferredStatus === STATUS.RESOLVED) {
-      toggleDialog();
-    }
-    return () => setStatus(STATUS.IDLE);
-  }, [deferredStatus, setStatus, toggleDialog]);
+  useEffect(
+    () => () => setStatus(STATUS.IDLE),
+    [status, setStatus, toggleDialog]
+  );
 
   const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -68,11 +57,9 @@ function AddCategoryDialog({ toggleDialog, parentId }: AddProductProps) {
 
   return (
     <EditProductContainer onSubmit={onSubmit}>
-      <Spinner isLoading={deferredStatus === STATUS.PENDING}>
+      <Spinner isLoading={status === STATUS.PENDING} onSuccess={toggleDialog}>
         <TextInput value={description} onChange={(e) => set(e.target.value)} />
-        <SaveButton disabled={deferredStatus === STATUS.PENDING}>
-          SAVE
-        </SaveButton>
+        <SaveButton disabled={status === STATUS.PENDING}>SAVE</SaveButton>
       </Spinner>
     </EditProductContainer>
   );

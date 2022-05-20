@@ -1,11 +1,4 @@
-import {
-  FormEvent,
-  Fragment,
-  memo,
-  useEffect,
-  useReducer,
-  useState,
-} from "react";
+import { FormEvent, Fragment, useEffect, useReducer, useState } from "react";
 import { useUpdateAtom } from "jotai/utils";
 import { atom, useAtom } from "jotai";
 import styled from "@emotion/styled";
@@ -62,25 +55,21 @@ function AddProductDialog({ toggleDialog, categoryId }: AddProductProps) {
   const [label, set] = useState("");
   const [status, setStatus] = useAtom(postProductStatusAtom);
   const postProduct = useUpdateAtom(postProductAtom);
-  console.log(status);
 
-  useEffect(() => {
-    if (status === STATUS.RESOLVED) {
-      // toggleDialog();
-    }
-    return () => setStatus(STATUS.IDLE);
-  }, [status, setStatus, toggleDialog]);
+  useEffect(() => () => setStatus(STATUS.IDLE), [setStatus]);
 
   const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     postProduct({ label, categoryId });
   };
 
+  console.log(status);
+
   return (
     <EditProductContainer onSubmit={onSubmit}>
-      <Spinner isLoading={status === STATUS.PENDING}>
+      <Spinner isLoading={status === STATUS.PENDING} onSuccess={toggleDialog}>
         <TextInput value={label} onChange={(e) => set(e.target.value)} />
-        <SaveButton>SAVE</SaveButton>
+        <SaveButton disabled={status === STATUS.PENDING}>SAVE</SaveButton>
       </Spinner>
     </EditProductContainer>
   );

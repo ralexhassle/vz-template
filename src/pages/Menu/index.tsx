@@ -1,23 +1,17 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
 import styled from "@emotion/styled";
 import { Suspense, useEffect } from "react";
-import { useAtom, useAtomValue } from "jotai";
+import { useAtom } from "jotai";
 import { useUpdateAtom } from "jotai/utils";
 
-import Category from "./Category";
-import Create from "./Create";
+import { Entities } from "./Entity";
 
-import { createEntitiesAtom, rootCategoriesAtom, menuAtom } from "./tree";
+import { createEntitiesAtom, menuAtom } from "./tree";
 
 function RootTree() {
-  const categories = useAtomValue(rootCategoriesAtom);
-
   return (
     <RootTreeContainer>
-      <Create.Category parentId={null} />
-      {categories.map(({ id }) => (
-        <Category categoryId={id} key={id} />
-      ))}
+      <Entities parentId={null} />
     </RootTreeContainer>
   );
 }

@@ -13,10 +13,12 @@ type CategoryCollection = Record<
 
 type ProductCollection = Record<API.Product["productId"], APP.ProductEntity>;
 
+type ParentCollection = Record<API.Category["categoryId"], APP.EntityType[]>;
+
 export const categoriesAtom = atom<CategoryCollection>({});
 export const productsAtom = atom<ProductCollection>({});
 
-export const categoriesStatusFamily = atomFamily(
+export const toggleAtomFamily = atomFamily(
   (categoryId: number) => atom({ isOpen: false, categoryId }),
   (a, b) => a === b
 );
@@ -39,19 +41,18 @@ export const rootCategoriesAtom = atom((get) =>
 const selectChildren = (id: number) => (entity: APP.EntityType) =>
   entity.parentId === id;
 
-export const parentEntitiesAtom = atom((get) => {
-  const entities = new Map<number, APP.EntityType[]>();
-  const entitiesArray = [
-    ...Object.values(get(productsAtom)),
-    ...Object.values(get(categoriesAtom)),
-  ];
+export const parentEntitiesAtom = atom<ParentCollection>((get) => {
+  const parentEntities = new Map<number, APP.EntityType[]>();
+  const categories = get(categoriesAtom);
+  const products = get(productsAtom);
+  const entities = [...Object.values(categories), ...Object.values(products)];
 
-  Object.values(get(categoriesAtom)).forEach((category) => {
-    const children = entitiesArray.filter(selectChildren(category.id));
-    entities.set(category.value.categoryId, children);
+  Object.values(categories).forEach((category) => {
+    const children = entities.filter(selectChildren(category.id));
+    parentEntities.set(category.value.categoryId, children);
   });
 
-  return entities;
+  return Object.fromEntries(parentEntities);
 });
 
 const makeCategoryEntity = (category: API.Category): APP.CategoryEntity => ({
@@ -85,23 +86,35 @@ const makeCategoryEntry = (
 export const createEntitiesAtom = atom(
   (get) => get(parentEntitiesAtom),
   (_get, set, menu: API.Menu) => {
-    const { products, categories } = menu;
-
-    const categoryEntries = new Map(categories.map(makeCategoryEntry));
-    const productEntries = new Map(products.map(makeProductEntry));
-
+    const categoryEntries = new Map(menu.categories.map(makeCategoryEntry));
+    const productEntries = new Map(menu.products.map(makeProductEntry));
     set(categoriesAtom, Object.fromEntries(categoryEntries));
     set(productsAtom, Object.fromEntries(productEntries));
   }
 );
 
+const ascendingOrder = (a: APP.EntityType, b: APP.EntityType) =>
+  a.value.order - b.value.order;
+
 export const childrenAtomFamily = atomFamily(
-  (parentId: number) =>
+  (parentId: number | null) =>
     atom((get) => {
-      const children = get(parentEntitiesAtom).get(parentId);
-      return children && !isEmpty(children) ? children : [];
+      if (parentId === null) {
+        return get(rootCategoriesAtom).sort(ascendingOrder);
+      }
+
+      const children = get(parentEntitiesAtom)[parentId];
+
+      if (!children) return [];
+      if (isEmpty(children)) return [];
+      return children.sort(ascendingOrder);
     }),
   (a, b) => a === b
+);
+
+export const entitiesAtomFamily = atomFamily(
+  (entity: APP.EntityType) => atom(entity),
+  (a, b) => a.id === b.id
 );
 
 export const updateCategoryAtom = atom(
