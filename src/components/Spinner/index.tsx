@@ -5,9 +5,9 @@ import { useTransition, animated } from "@react-spring/web";
 import { useMounted } from "@hooks";
 
 enum STATUS {
-  READY = "ready",
+  IDLE = "idle",
   SUCCESS = "success",
-  LOADING = "loading",
+  PENDING = "pending",
 }
 
 const spin = keyframes`
@@ -53,62 +53,50 @@ function Spinner(props: Props) {
   } = props;
 
   const isMounted = useMounted();
-  const [status, set] = useState(STATUS.READY);
+  const [status, set] = useState(STATUS.IDLE);
 
-  /**
-   * Effect to restart the spinner when isLoading prop changes
-   * status is SUCCESS only after spring is on rest
-   */
   useEffect(() => {
-    if (isMounted()) {
-      set(STATUS.SUCCESS);
-    }
-  }, [isMounted]);
+    if (!isMounted()) return;
+    if (isLoading) set(STATUS.PENDING);
+    if (status === STATUS.SUCCESS) onSuccess?.();
+  }, [status, onSuccess, isLoading, isMounted]);
 
-  /**
-   * Start spring when isLoading === true
-   */
   const transition = useTransition(isLoading, {
-    from: { opacity: 0 },
+    trail: 250,
+    from: { opacity: 1 },
     enter: { opacity: 1 },
-    leave: { opacity: 1 },
-    delay: 200,
-    // trail: 1000,
+    leave: { opacity: 0 },
     onRest: () => {
       if (!isMounted()) return;
-      if (status === STATUS.READY) return;
-      if (status === STATUS.SUCCESS) return;
-      if (status === STATUS.LOADING) {
-        set(STATUS.SUCCESS);
-        onSuccess?.();
-      }
+      if (status !== STATUS.IDLE) set(STATUS.SUCCESS);
     },
   });
 
+  if (status === STATUS.SUCCESS || status === STATUS.IDLE) {
+    return <Container>{children}</Container>;
+  }
+
   return (
-    <Fragment>
-      <Container>
-        {transition(
-          (style, item) =>
-            item && (
-              <animated.svg
-                data-spinner
-                css={animation}
-                style={{ ...style }}
-                stroke={color}
-                fill={color}
-                strokeWidth="0"
-                viewBox="0 0 512 512"
-                height={size}
-                width={size}
-              >
-                <path d={SPINNER_PATH} />
-              </animated.svg>
-            )
-        )}
-      </Container>
-      {children && status === STATUS.SUCCESS && children}
-    </Fragment>
+    <Container>
+      {transition((style, item) => {
+        if (!item) return null;
+        return (
+          <animated.svg
+            data-spinner
+            css={animation}
+            style={{ ...style }}
+            stroke={color}
+            fill={color}
+            strokeWidth="0"
+            viewBox="0 0 512 512"
+            height={size}
+            width={size}
+          >
+            <path d={SPINNER_PATH} />
+          </animated.svg>
+        );
+      })}
+    </Container>
   );
 }
 

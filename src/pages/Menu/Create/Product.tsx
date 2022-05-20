@@ -63,15 +63,13 @@ function AddProductDialog({ toggleDialog, categoryId }: AddProductProps) {
     postProduct({ label, categoryId });
   };
 
-  console.log(status);
-
   return (
-    <EditProductContainer onSubmit={onSubmit}>
-      <Spinner isLoading={status === STATUS.PENDING} onSuccess={toggleDialog}>
+    <Spinner isLoading={status === STATUS.PENDING} onSuccess={toggleDialog}>
+      <EditProductContainer onSubmit={onSubmit}>
         <TextInput value={label} onChange={(e) => set(e.target.value)} />
         <SaveButton disabled={status === STATUS.PENDING}>SAVE</SaveButton>
-      </Spinner>
-    </EditProductContainer>
+      </EditProductContainer>
+    </Spinner>
   );
 }
 
