@@ -245,3 +245,41 @@ export const moveProductAtom = atom(
     });
   }
 );
+
+type MoveCategoryUpdate = {
+  dragCategory: API.Category;
+  hoverCategory: API.Category;
+};
+export const moveCategoryAtom = atom(
+  null,
+  (_get, set, update: MoveCategoryUpdate) => {
+    const dragCategory = makeCategoryEntity({
+      ...update.dragCategory,
+      order: update.hoverCategory.order,
+    });
+
+    const hoverCategory = makeCategoryEntity({
+      ...update.hoverCategory,
+      order: update.dragCategory.order,
+    });
+
+    set(categoriesAtom, (prev) => ({
+      ...prev,
+      [dragCategory.id]: dragCategory,
+      [hoverCategory.id]: hoverCategory,
+    }));
+
+    set(siblingsAtom, (prev) => {
+      const categoryId =
+        dragCategory.parentId === null ? "root" : String(dragCategory.parentId);
+      const entities = prev[categoryId].map((entity: APP.EntityType) => {
+        if (entity.type === "product") return entity;
+        if (entity.id === dragCategory.id) return dragCategory;
+        if (entity.id === hoverCategory.id) return hoverCategory;
+        return entity;
+      });
+
+      return { ...prev, [categoryId]: [...entities] };
+    });
+  }
+);

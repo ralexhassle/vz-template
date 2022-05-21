@@ -20,6 +20,7 @@ import {
   productsAtomFamily,
   selectSiblings,
   moveProductAtom,
+  moveCategoryAtom,
 } from "../tree";
 
 export function RootCategory() {
@@ -31,20 +32,73 @@ export function RootCategory() {
   );
 }
 
+type DragCategory = API.Category;
+
 interface CategoryProps {
   categoryId: API.Category["categoryId"];
 }
 export function Category({ categoryId }: CategoryProps) {
+  const ref = useRef<HTMLDivElement>(null);
+
   const { value: category } = useAtomValue(categoriesAtomFamily(categoryId));
   const [{ isOpen }, toggle] = useAtom(toggleAtomFamily(category.categoryId));
   const entities = useAtomValue(selectSiblings(categoryId));
+  const move = useUpdateAtom(moveCategoryAtom);
+
+  const moveCategory = useCallback(
+    (dragCategory: API.Category, hoverCategory: API.Category) => {
+      move({ dragCategory, hoverCategory });
+    },
+    [move]
+  );
 
   const onClick = useCallback(() => {
     toggle((prev) => ({ ...prev, isOpen: !isOpen }));
   }, [isOpen, toggle]);
 
+  const [{ handlerId }, drop] = useDrop<
+    DragCategory,
+    void,
+    { handlerId: Identifier | null }
+  >({
+    accept: "category",
+    collect: (monitor) => ({ handlerId: monitor.getHandlerId() }),
+    hover: (item: DragCategory, monitor) => {
+      if (!ref.current) return;
+      const dragIndex = item.order;
+      const hoverIndex = category.order;
+
+      if (dragIndex === hoverIndex) return;
+      const hoverRect = ref.current?.getBoundingClientRect();
+      const hoverMiddleY = (hoverRect.bottom - hoverRect.top) / 2;
+      const clientOffset = monitor.getClientOffset();
+      const hoverClientY = (clientOffset as XYCoord).y - hoverRect.top;
+
+      if (dragIndex < hoverIndex && hoverClientY < hoverMiddleY) return;
+      if (dragIndex > hoverIndex && hoverClientY > hoverMiddleY) return;
+      moveCategory(item, category);
+      // eslint-disable-next-line no-param-reassign
+      item.order = hoverIndex;
+    },
+  });
+
+  const [{ isDragging }, drag] = useDrag({
+    type: "category",
+    item: () => category,
+    collect: (monitor: DragSourceMonitor<API.Category>) => ({
+      isDragging: monitor.isDragging(),
+    }),
+  });
+
+  const opacity = isDragging ? 0 : 1;
+  drag(drop(ref));
+
   return (
-    <CategoryContainer>
+    <CategoryContainer
+      ref={ref}
+      data-handler-id={handlerId}
+      style={{ opacity }}
+    >
       <Description>
         <Delete.Category {...{ category }} />
         <Update.Category {...{ category }} />
@@ -79,7 +133,7 @@ const DescriptionButton = styled("button")`
   cursor: pointer;
 `;
 
-type DragItem = API.Product;
+type DragProduct = API.Product;
 
 interface ProductProps {
   productId: API.Product["productId"];
@@ -97,13 +151,13 @@ function Product({ productId }: ProductProps) {
   );
 
   const [{ handlerId }, drop] = useDrop<
-    DragItem,
+    DragProduct,
     void,
     { handlerId: Identifier | null }
   >({
     accept: "product",
     collect: (monitor) => ({ handlerId: monitor.getHandlerId() }),
-    hover: (item: DragItem, monitor) => {
+    hover: (item: DragProduct, monitor) => {
       if (!ref.current) return;
       const dragIndex = item.order;
       const hoverIndex = product.order;
@@ -167,21 +221,23 @@ function Entities({ parentId, entities }: EntitiesProps) {
   }
 
   return (
-    <EntitiesContainer>
-      <Create.Category parentId={parentId} />
-      {parentId && <Create.Product categoryId={parentId} />}
-      {entities.sort(ascendingOrder).map((entity) => {
-        if (entity.type === "category") {
-          return (
-            <DndProvider backend={HTML5Backend} key={entity.id}>
-              <Category categoryId={entity.id} key={entity.id} />
-            </DndProvider>
-          );
-        }
+    <DndProvider backend={HTML5Backend}>
+      <EntitiesContainer>
+        <Create.Category parentId={parentId} />
+        {parentId && <Create.Product categoryId={parentId} />}
+        {entities.sort(ascendingOrder).map((entity) => {
+          if (entity.type === "category") {
+            return (
+              <DndProvider backend={HTML5Backend} key={entity.id}>
+                <Category categoryId={entity.id} key={entity.id} />
+              </DndProvider>
+            );
+          }
 
-        return <Product productId={entity.id} key={entity.id} />;
-      })}
-    </EntitiesContainer>
+          return <Product productId={entity.id} key={entity.id} />;
+        })}
+      </EntitiesContainer>
+    </DndProvider>
   );
 }
 
