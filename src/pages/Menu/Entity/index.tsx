@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
 import { DndProvider, DragSourceMonitor, useDrag, useDrop } from "react-dnd";
-import { memo, useCallback, useEffect, useRef } from "react";
+import { useCallback, useRef } from "react";
 import { useUpdateAtom } from "jotai/utils";
 import { useAtomValue, useAtom } from "jotai";
-import { HTML5Backend } from "react-dnd-html5-backend";
+import { TouchBackend } from "react-dnd-touch-backend";
 import styled from "@emotion/styled";
 
 import type { Identifier, XYCoord } from "dnd-core";
@@ -22,12 +22,14 @@ import {
   moveProductAtom,
   moveCategoryAtom,
 } from "../tree";
+import Select from "../Select";
 
+const ROOT_ID = null;
 export function RootCategory() {
-  const entities = useAtomValue(selectSiblings(null));
+  const entities = useAtomValue(selectSiblings(ROOT_ID));
   return (
     <CategoryContainer>
-      <Entities entities={entities} parentId={null} />
+      <Entities entities={entities} parentId={ROOT_ID} />
     </CategoryContainer>
   );
 }
@@ -41,7 +43,7 @@ export function Category({ categoryId }: CategoryProps) {
   const ref = useRef<HTMLDivElement>(null);
 
   const { value: category } = useAtomValue(categoriesAtomFamily(categoryId));
-  const [{ isOpen }, toggle] = useAtom(toggleAtomFamily(category.categoryId));
+  const [{ isOpen }, toggle] = useAtom(toggleAtomFamily(categoryId));
   const entities = useAtomValue(selectSiblings(categoryId));
   const move = useUpdateAtom(moveCategoryAtom);
 
@@ -90,18 +92,18 @@ export function Category({ categoryId }: CategoryProps) {
     }),
   });
 
-  const opacity = isDragging ? 0 : 1;
   drag(drop(ref));
 
   return (
     <CategoryContainer
       ref={ref}
       data-handler-id={handlerId}
-      style={{ opacity }}
+      data-is-dragging={isDragging}
     >
       <Description>
         <Delete.Category {...{ category }} />
         <Update.Category {...{ category }} />
+        <Select.Category {...{ category }} />
         <DescriptionButton onClick={onClick} type="button">
           {category.description}
         </DescriptionButton>
@@ -124,6 +126,10 @@ const Description = styled("div")`
 const CategoryContainer = styled("div")`
   display: flex;
   flex-direction: column;
+
+  &[data-is-dragging="true"] {
+    opacity: 0.5;
+  }
 `;
 
 const DescriptionButton = styled("button")`
@@ -184,13 +190,17 @@ function Product({ productId }: ProductProps) {
     }),
   });
 
-  const opacity = isDragging ? 0 : 1;
   drag(drop(ref));
 
   return (
-    <ProductContainer ref={ref} data-handler-id={handlerId} style={{ opacity }}>
+    <ProductContainer
+      ref={ref}
+      data-handler-id={handlerId}
+      data-is-dragging={isDragging}
+    >
       <Delete.Product {...{ product }} />
       <Update.Product {...{ product }} />
+      <Select.Product {...{ product }} />
       {product.label}
     </ProductContainer>
   );
@@ -199,8 +209,15 @@ function Product({ productId }: ProductProps) {
 const ProductContainer = styled("div")`
   display: flex;
 
+  user-select: none;
+  cursor: pointer;
+
   > *:not(:last-child) {
     margin-right: 0.25em;
+  }
+
+  &[data-is-dragging="true"] {
+    opacity: 0.5;
   }
 `;
 const ascendingOrder = (a: APP.EntityType, b: APP.EntityType) =>
@@ -221,14 +238,18 @@ function Entities({ parentId, entities }: EntitiesProps) {
   }
 
   return (
-    <DndProvider backend={HTML5Backend}>
+    <DndProvider backend={TouchBackend} options={{ enableMouseEvents: true }}>
       <EntitiesContainer>
         <Create.Category parentId={parentId} />
         {parentId && <Create.Product categoryId={parentId} />}
         {entities.sort(ascendingOrder).map((entity) => {
           if (entity.type === "category") {
             return (
-              <DndProvider backend={HTML5Backend} key={entity.id}>
+              <DndProvider
+                key={entity.id}
+                backend={TouchBackend}
+                options={{ enableMouseEvents: true }}
+              >
                 <Category categoryId={entity.id} key={entity.id} />
               </DndProvider>
             );

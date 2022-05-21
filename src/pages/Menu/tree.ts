@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/dot-notation */
-import { Atom, atom } from "jotai";
+import { atom } from "jotai";
 import { atomFamily } from "jotai/utils";
 
 import { client } from "@app/config";
-import { isDefined, isEmpty } from "@utils";
+import { isDefined } from "@utils";
 
 export const menuAtom = atom(async () => client.Menu.getMenu());
 
@@ -19,18 +19,32 @@ type SiblingCollection = Record<string, APP.EntityType[]>;
 export const categoriesAtom = atom<CategoryCollection>({});
 export const productsAtom = atom<ProductCollection>({});
 
+export const selectCategoryAtomFamily = atomFamily(
+  (parentId: API.Category["parentId"]) => atom({ parentId, isSelected: false }),
+  (a, b) => a === b
+);
+
+export const selectProductAtomFamily = atomFamily(
+  (productId: API.Product["productId"]) =>
+    atom({ isSelected: false, productId }),
+  (a, b) => a === b
+);
+
 export const toggleAtomFamily = atomFamily(
-  (categoryId: number) => atom({ isOpen: false, categoryId }),
+  (categoryId: API.Category["categoryId"]) =>
+    atom({ isOpen: false, categoryId }),
   (a, b) => a === b
 );
 
 export const categoriesAtomFamily = atomFamily(
-  (categoryId: number) => atom((get) => get(categoriesAtom)[categoryId]),
+  (categoryId: API.Category["categoryId"]) =>
+    atom((get) => get(categoriesAtom)[categoryId]),
   (a, b) => a === b
 );
 
 export const productsAtomFamily = atomFamily(
-  (productId: number) => atom((get) => get(productsAtom)[productId]),
+  (productId: API.Product["productId"]) =>
+    atom((get) => get(productsAtom)[productId]),
   (a, b) => a === b
 );
 
@@ -75,31 +89,34 @@ export const createEntitiesAtom = atom(
   (_get, set, menu: API.Menu) => {
     const categoryEntries = new Map(menu.categories.map(makeCategoryEntry));
     const productEntries = new Map(menu.products.map(makeProductEntry));
-    const parentEntities = new Map<string, APP.EntityType[]>();
+    const siblingEntities = new Map<string, APP.EntityType[]>();
 
     const categories = Object.fromEntries(categoryEntries);
     const products = Object.fromEntries(productEntries);
     const entities = [...Object.values(categories), ...Object.values(products)];
 
-    set(categoriesAtom, categories);
-    set(productsAtom, products);
-
     Object.values(categories).forEach((category) => {
       const children = entities.filter(selectChildren(category.id));
-      parentEntities.set(String(category.value.categoryId), children);
+      siblingEntities.set(String(category.value.categoryId), children);
     });
 
-    parentEntities.set("root", Object.values(categories).filter(isRoot));
+    siblingEntities.set("root", Object.values(categories).filter(isRoot));
 
-    set(siblingsAtom, Object.fromEntries(parentEntities));
+    set(siblingsAtom, Object.fromEntries(siblingEntities));
+    set(categoriesAtom, categories);
+    set(productsAtom, products);
   }
 );
+
+function makeSiblingId(parentId: number | null) {
+  return parentId === null ? "root" : String(parentId);
+}
 
 export const siblingsAtom = atom<SiblingCollection>({});
 export const selectSiblings = atomFamily(
   (parentId: number | null) =>
     atom((get) => {
-      const id = parentId === null ? "root" : String(parentId);
+      const id = makeSiblingId(parentId);
       const siblings: APP.EntityType[] = get(siblingsAtom)[id];
       return isDefined(siblings) ? siblings : [];
     }),
@@ -130,7 +147,7 @@ export const updateCategoryAtom = atom(
     const category: APP.CategoryEntity = makeCategoryEntity(update);
     set(categoriesAtom, (prev) => ({ ...prev, [categoryId]: category }));
     set(siblingsAtom, (prev) => {
-      const id = parentId === null ? "root" : String(parentId);
+      const id = makeSiblingId(parentId);
 
       if (!isDefined(prev[id])) return { ...prev, [id]: [category] };
 
@@ -203,7 +220,7 @@ export const deleteCategoryAtom = atom(
     const { [categoryId]: _, ...categories } = get(categoriesAtom);
     set(categoriesAtom, categories);
     set(siblingsAtom, (prev) => {
-      const id = parentId === null ? "root" : String(parentId);
+      const id = makeSiblingId(parentId);
       return { ...prev, [id]: prev[id].filter(removeSibling(categoryId)) };
     });
   }
@@ -270,16 +287,15 @@ export const moveCategoryAtom = atom(
     }));
 
     set(siblingsAtom, (prev) => {
-      const categoryId =
-        dragCategory.parentId === null ? "root" : String(dragCategory.parentId);
-      const entities = prev[categoryId].map((entity: APP.EntityType) => {
+      const id = makeSiblingId(dragCategory.parentId);
+      const entities = prev[id].map((entity: APP.EntityType) => {
         if (entity.type === "product") return entity;
         if (entity.id === dragCategory.id) return dragCategory;
         if (entity.id === hoverCategory.id) return hoverCategory;
         return entity;
       });
 
-      return { ...prev, [categoryId]: [...entities] };
+      return { ...prev, [id]: [...entities] };
     });
   }
 );

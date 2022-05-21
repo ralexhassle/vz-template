@@ -25,15 +25,15 @@ type ButtonProps = DetailedHTMLProps<
 
 interface CategoryEntity {
   type: "category";
-  id: number;
-  parentId: number | null;
+  id: API.Category["categoryId"];
+  parentId: API.Category["parentId"];
   value: API.Category;
 }
 
 interface ProductEntity {
   type: "product";
-  id: number;
-  parentId: number;
+  id: API.Product["productId"];
+  parentId: API.Product["categoryId"];
   value: API.Product;
 }
 
