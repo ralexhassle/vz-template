@@ -1,7 +1,12 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
-import { memo, useCallback } from "react";
+import { DndProvider, DragSourceMonitor, useDrag, useDrop } from "react-dnd";
+import { memo, useCallback, useEffect, useRef } from "react";
+import { useUpdateAtom } from "jotai/utils";
 import { useAtomValue, useAtom } from "jotai";
+import { HTML5Backend } from "react-dnd-html5-backend";
 import styled from "@emotion/styled";
+
+import type { Identifier, XYCoord } from "dnd-core";
 
 import { isEmpty } from "@app/utils";
 
@@ -12,17 +17,32 @@ import Create from "../Create";
 import {
   categoriesAtomFamily,
   toggleAtomFamily,
-  entitiesAtomFamily,
-  childrenAtomFamily,
   productsAtomFamily,
+  selectSiblings,
+  moveProductAtom,
 } from "../tree";
 
-interface CategoryProps {
-  category: API.Category;
-  onClick: VoidFunction;
-  isOpen: boolean;
+export function RootCategory() {
+  const entities = useAtomValue(selectSiblings(null));
+  return (
+    <CategoryContainer>
+      <Entities entities={entities} parentId={null} />
+    </CategoryContainer>
+  );
 }
-function CategoryComponent({ category, onClick, isOpen }: CategoryProps) {
+
+interface CategoryProps {
+  categoryId: API.Category["categoryId"];
+}
+export function Category({ categoryId }: CategoryProps) {
+  const { value: category } = useAtomValue(categoriesAtomFamily(categoryId));
+  const [{ isOpen }, toggle] = useAtom(toggleAtomFamily(category.categoryId));
+  const entities = useAtomValue(selectSiblings(categoryId));
+
+  const onClick = useCallback(() => {
+    toggle((prev) => ({ ...prev, isOpen: !isOpen }));
+  }, [isOpen, toggle]);
+
   return (
     <CategoryContainer>
       <Description>
@@ -32,7 +52,9 @@ function CategoryComponent({ category, onClick, isOpen }: CategoryProps) {
           {category.description}
         </DescriptionButton>
       </Description>
-      {isOpen && <Entities parentId={category.categoryId} />}
+      {isOpen && (
+        <Entities entities={entities} parentId={category.categoryId} />
+      )}
     </CategoryContainer>
   );
 }
@@ -57,33 +79,84 @@ const DescriptionButton = styled("button")`
   cursor: pointer;
 `;
 
-interface CategoryOwnProps {
-  categoryId: API.Category["categoryId"];
+type DragItem = API.Product;
+
+interface ProductProps {
+  productId: API.Product["productId"];
 }
-const withCategory = (Component: React.FC<CategoryProps>) => {
-  const MemoComponent = memo(Component);
+function Product({ productId }: ProductProps) {
+  const ref = useRef<HTMLDivElement>(null);
+  const { value: product } = useAtomValue(productsAtomFamily(productId));
+  const move = useUpdateAtom(moveProductAtom);
 
-  function Wrapper({ categoryId }: CategoryOwnProps) {
-    const { value: category } = useAtomValue(categoriesAtomFamily(categoryId));
-    const [{ isOpen }, toggle] = useAtom(toggleAtomFamily(category.categoryId));
+  const moveProduct = useCallback(
+    (dragProduct: API.Product, hoverProduct: API.Product) => {
+      move({ dragProduct, hoverProduct });
+    },
+    [move]
+  );
 
-    const onClick = useCallback(() => {
-      toggle((prev) => ({ ...prev, isOpen: !isOpen }));
-    }, [isOpen, toggle]);
+  const [{ handlerId }, drop] = useDrop<
+    DragItem,
+    void,
+    { handlerId: Identifier | null }
+  >({
+    accept: "product",
+    collect: (monitor) => ({ handlerId: monitor.getHandlerId() }),
+    hover: (item: DragItem, monitor) => {
+      if (!ref.current) return;
+      const dragIndex = item.order;
+      const hoverIndex = product.order;
 
-    return <MemoComponent {...{ category, onClick, isOpen }} />;
+      if (dragIndex === hoverIndex) return;
+      const hoverRect = ref.current?.getBoundingClientRect();
+      const hoverMiddleY = (hoverRect.bottom - hoverRect.top) / 2;
+      const clientOffset = monitor.getClientOffset();
+      const hoverClientY = (clientOffset as XYCoord).y - hoverRect.top;
+
+      if (dragIndex < hoverIndex && hoverClientY < hoverMiddleY) return;
+      if (dragIndex > hoverIndex && hoverClientY > hoverMiddleY) return;
+      moveProduct(item, product);
+      // eslint-disable-next-line no-param-reassign
+      item.order = hoverIndex;
+    },
+  });
+
+  const [{ isDragging }, drag] = useDrag({
+    type: "product",
+    item: () => product,
+    collect: (monitor: DragSourceMonitor<API.Product>) => ({
+      isDragging: monitor.isDragging(),
+    }),
+  });
+
+  const opacity = isDragging ? 0 : 1;
+  drag(drop(ref));
+
+  return (
+    <ProductContainer ref={ref} data-handler-id={handlerId} style={{ opacity }}>
+      <Delete.Product {...{ product }} />
+      <Update.Product {...{ product }} />
+      {product.label}
+    </ProductContainer>
+  );
+}
+
+const ProductContainer = styled("div")`
+  display: flex;
+
+  > *:not(:last-child) {
+    margin-right: 0.25em;
   }
-
-  return memo(Wrapper);
-};
-
-const Category = withCategory(CategoryComponent);
+`;
+const ascendingOrder = (a: APP.EntityType, b: APP.EntityType) =>
+  a.value.order - b.value.order;
 
 interface EntitiesProps {
-  parentId: number | null;
   entities: APP.EntityType[];
+  parentId: number | null;
 }
-function EntitiesComponent({ parentId, entities }: EntitiesProps) {
+function Entities({ parentId, entities }: EntitiesProps) {
   if (isEmpty(entities)) {
     return (
       <EntitiesContainer>
@@ -97,9 +170,17 @@ function EntitiesComponent({ parentId, entities }: EntitiesProps) {
     <EntitiesContainer>
       <Create.Category parentId={parentId} />
       {parentId && <Create.Product categoryId={parentId} />}
-      {entities.map((entity) => (
-        <Entity entity={entity} key={entity.id} />
-      ))}
+      {entities.sort(ascendingOrder).map((entity) => {
+        if (entity.type === "category") {
+          return (
+            <DndProvider backend={HTML5Backend} key={entity.id}>
+              <Category categoryId={entity.id} key={entity.id} />
+            </DndProvider>
+          );
+        }
+
+        return <Product productId={entity.id} key={entity.id} />;
+      })}
     </EntitiesContainer>
   );
 }
@@ -115,76 +196,4 @@ const EntitiesContainer = styled("div")`
   }
 `;
 
-interface EntitiesOwnProps {
-  parentId: number | null;
-}
-const withEntities = (Component: React.FC<EntitiesProps>) => {
-  const MemoComponent = memo(Component);
-
-  function Wrapper({ parentId }: EntitiesOwnProps) {
-    const entities = useAtomValue(childrenAtomFamily(parentId));
-    return <MemoComponent {...{ entities, parentId }} />;
-  }
-
-  return memo(Wrapper);
-};
-
-export const Entities = withEntities(EntitiesComponent);
-
-interface ProductProps {
-  product: API.Product;
-}
-function ProductComponent(props: ProductProps) {
-  const { product } = props;
-  return (
-    <ProductContainer>
-      <Delete.Product {...{ product }} />
-      <Update.Product {...{ product }} />
-      {product.label}
-    </ProductContainer>
-  );
-}
-
-const ProductContainer = styled("div")`
-  display: flex;
-
-  > *:not(:last-child) {
-    margin-right: 0.25em;
-  }
-`;
-
-interface ProductOwnProps {
-  productId: API.Product["productId"];
-}
-const withProduct = (Component: React.FC<ProductProps>) => {
-  const MemoComponent = memo(Component);
-
-  function Wrapper({ productId }: ProductOwnProps) {
-    const entity = useAtomValue(productsAtomFamily(productId));
-
-    return <MemoComponent product={entity.value} />;
-  }
-
-  return memo(Wrapper);
-};
-
-const Product = withProduct(ProductComponent);
-
-interface Props {
-  entity: APP.EntityType;
-}
-function Entity({ entity }: Props) {
-  const { type, id } = useAtomValue(entitiesAtomFamily(entity));
-
-  if (type === "category") {
-    return <Category categoryId={id} key={id} />;
-  }
-
-  if (type === "product") {
-    return <Product productId={id} key={id} />;
-  }
-
-  return null;
-}
-
-export default memo(Entity);
+export default Entities;

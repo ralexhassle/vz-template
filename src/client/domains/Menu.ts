@@ -12,7 +12,7 @@ class Menu extends Domain {
     return new Promise<API.Menu>((resolve) => {
       setTimeout(() => {
         resolve(MENU);
-      }, 1000);
+      }, 500);
     });
   }
 
@@ -23,7 +23,7 @@ class Menu extends Domain {
           ...product,
           productId: random(10000, 99999),
         });
-      }, 3000);
+      }, 500);
     });
   }
 
@@ -34,7 +34,7 @@ class Menu extends Domain {
           ...category,
           categoryId: random(10000, 99999),
         });
-      }, 1000);
+      }, 500);
     });
   }
 }
