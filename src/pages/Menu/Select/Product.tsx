@@ -35,8 +35,13 @@ function SelectProduct({ product }: Props) {
   );
 
   const onClick = useCallback(() => {
-    toggleProductSelect((prev) => ({ ...prev, isSelected: !isSelected }));
-    toggleCategorySelect((prev) => ({ ...prev, isSelected: !isSelected }));
+    if (isSelected) {
+      toggleProductSelect((prev) => ({ ...prev, isSelected: false }));
+      toggleCategorySelect((prev) => ({ ...prev, count: prev.count - 1 }));
+    } else {
+      toggleProductSelect((prev) => ({ ...prev, isSelected: true }));
+      toggleCategorySelect((prev) => ({ ...prev, count: prev.count + 1 }));
+    }
   }, [isSelected, toggleProductSelect, toggleCategorySelect]);
 
   return (

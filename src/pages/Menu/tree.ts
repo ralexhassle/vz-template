@@ -20,7 +20,7 @@ export const categoriesAtom = atom<CategoryCollection>({});
 export const productsAtom = atom<ProductCollection>({});
 
 export const selectCategoryAtomFamily = atomFamily(
-  (parentId: API.Category["parentId"]) => atom({ parentId, isSelected: false }),
+  (categoryId: API.Category["parentId"]) => atom({ categoryId, count: 0 }),
   (a, b) => a === b
 );
 

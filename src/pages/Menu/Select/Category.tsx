@@ -26,15 +26,18 @@ interface Props {
 function SelectCategory({ category }: Props) {
   const { categoryId, parentId } = category;
 
-  const { isSelected } = useAtomValue(selectCategoryAtomFamily(categoryId));
+  const { count } = useAtomValue(selectCategoryAtomFamily(categoryId));
   const toggleParent = useUpdateAtom(selectCategoryAtomFamily(parentId));
 
   useEffect(() => {
-    toggleParent((prev) => ({ ...prev, isSelected }));
-  }, [isSelected, toggleParent]);
+    toggleParent((prev) => {
+      if (count === 0) return { ...prev, count: 0 };
+      return { ...prev, count: prev.count + 1 };
+    });
+  }, [count, toggleParent]);
 
   return (
-    <Container data-is-selected={isSelected}>
+    <Container data-is-selected={count > 0}>
       <Icon />
     </Container>
   );
