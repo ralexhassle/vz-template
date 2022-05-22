@@ -30,6 +30,37 @@ export const selectProductAtomFamily = atomFamily(
   (a, b) => a === b
 );
 
+const selectAncestors = (
+  categories: CategoryCollection,
+  id: number | null
+): APP.EntityType[] => {
+  if (id === null) return [];
+  const category = categories[id];
+  if (!isDefined(category)) return [];
+  return [category, ...selectAncestors(categories, category.parentId)];
+};
+
+export const toggleSelectProductAtom = atom(
+  null,
+  (get, set, product: API.Product) => {
+    const subject = get(selectProductAtomFamily(product.productId));
+
+    set(selectProductAtomFamily(product.productId), {
+      ...subject,
+      isSelected: !subject.isSelected,
+    });
+
+    const ancestors = selectAncestors(get(categoriesAtom), product.categoryId);
+
+    ancestors.forEach((ancestor: APP.EntityType) => {
+      set(selectCategoryAtomFamily(ancestor.id), (prev) => {
+        if (subject.isSelected) return { ...prev, count: prev.count - 1 };
+        return { ...prev, count: prev.count + 1 };
+      });
+    });
+  }
+);
+
 export const toggleAtomFamily = atomFamily(
   (categoryId: API.Category["categoryId"]) =>
     atom({ isOpen: false, categoryId }),

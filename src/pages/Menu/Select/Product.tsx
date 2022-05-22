@@ -1,9 +1,9 @@
 import styled from "@emotion/styled";
-import { useAtom } from "jotai";
+import { useAtomValue } from "jotai";
 import { useUpdateAtom } from "jotai/utils";
 import { useCallback } from "react";
 
-import { selectProductAtomFamily, selectCategoryAtomFamily } from "../tree";
+import { selectProductAtomFamily, toggleSelectProductAtom } from "../tree";
 
 function Icon() {
   return (
@@ -24,25 +24,15 @@ interface Props {
   product: API.Product;
 }
 function SelectProduct({ product }: Props) {
-  const { productId, categoryId } = product;
-
-  const [{ isSelected }, toggleProductSelect] = useAtom(
-    selectProductAtomFamily(productId)
+  const { isSelected } = useAtomValue(
+    selectProductAtomFamily(product.productId)
   );
 
-  const toggleCategorySelect = useUpdateAtom(
-    selectCategoryAtomFamily(categoryId)
-  );
+  const toggle = useUpdateAtom(toggleSelectProductAtom);
 
   const onClick = useCallback(() => {
-    if (isSelected) {
-      toggleProductSelect((prev) => ({ ...prev, isSelected: false }));
-      toggleCategorySelect((prev) => ({ ...prev, count: prev.count - 1 }));
-    } else {
-      toggleProductSelect((prev) => ({ ...prev, isSelected: true }));
-      toggleCategorySelect((prev) => ({ ...prev, count: prev.count + 1 }));
-    }
-  }, [isSelected, toggleProductSelect, toggleCategorySelect]);
+    toggle(product);
+  }, [product, toggle]);
 
   return (
     <Container data-is-selected={isSelected} onClick={onClick}>

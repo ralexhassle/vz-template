@@ -1,7 +1,5 @@
 import styled from "@emotion/styled";
-import { useAtom, useAtomValue } from "jotai";
-import { useUpdateAtom } from "jotai/utils";
-import { useEffect } from "react";
+import { useAtomValue } from "jotai";
 
 import { selectCategoryAtomFamily } from "../tree";
 
@@ -24,17 +22,9 @@ interface Props {
   category: API.Category;
 }
 function SelectCategory({ category }: Props) {
-  const { categoryId, parentId } = category;
+  const { categoryId } = category;
 
   const { count } = useAtomValue(selectCategoryAtomFamily(categoryId));
-  const toggleParent = useUpdateAtom(selectCategoryAtomFamily(parentId));
-
-  useEffect(() => {
-    toggleParent((prev) => {
-      if (count === 0) return { ...prev, count: 0 };
-      return { ...prev, count: prev.count + 1 };
-    });
-  }, [count, toggleParent]);
 
   return (
     <Container data-is-selected={count > 0}>
