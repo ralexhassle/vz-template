@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
 import { DndProvider, DragSourceMonitor, useDrag, useDrop } from "react-dnd";
 import { useCallback, useRef } from "react";
-import { useUpdateAtom } from "jotai/utils";
 import { useAtomValue, useAtom } from "jotai";
 import { TouchBackend } from "react-dnd-touch-backend";
 import styled from "@emotion/styled";
@@ -18,57 +17,119 @@ import {
   categoriesAtomFamily,
   toggleAtomFamily,
   productsAtomFamily,
-  selectSiblings,
-  moveProductAtom,
-  moveCategoryAtom,
+  selectChildrenAtomFamily,
+  childrenAtomFamily,
+  levelAtomFamily,
 } from "../tree";
 import Select from "../Select";
 
-const ROOT_ID = null;
+const ROOT_ID = Infinity;
 export function RootCategory() {
-  const entities = useAtomValue(selectSiblings(ROOT_ID));
+  const children = useAtomValue(selectChildrenAtomFamily(ROOT_ID));
   return (
     <CategoryContainer>
-      <Entities entities={entities} parentId={ROOT_ID} />
+      <Entities entities={children} parentId={null} />
     </CategoryContainer>
   );
 }
 
-type DragCategory = API.Category;
-
-interface CategoryProps {
-  categoryId: API.Category["categoryId"];
+interface EntitiesProps {
+  entities: APP.EntityType["children"];
+  parentId: number | null;
 }
-export function Category({ categoryId }: CategoryProps) {
-  const ref = useRef<HTMLDivElement>(null);
+function Entities({ parentId, entities }: EntitiesProps) {
+  const [children, setChildren] = useAtom(childrenAtomFamily(entities));
 
-  const { value: category } = useAtomValue(categoriesAtomFamily(categoryId));
-  const [{ isOpen }, toggle] = useAtom(toggleAtomFamily(categoryId));
-  const entities = useAtomValue(selectSiblings(categoryId));
-  const move = useUpdateAtom(moveCategoryAtom);
+  const move = useCallback(
+    (dragIndex: number, hoverIndex: number) => {
+      setChildren((prev: APP.Child[]) => {
+        const dragItem = prev[dragIndex];
+        const newChildren = [...prev];
+        newChildren.splice(dragIndex, 1);
+        newChildren.splice(hoverIndex, 0, dragItem);
+        return newChildren;
+      });
+    },
+    [setChildren]
+  );
 
-  const moveCategory = useCallback(
-    (dragCategory: API.Category, hoverCategory: API.Category) => {
-      move({ dragCategory, hoverCategory });
+  const renderChild = useCallback(
+    (child: APP.Child, order: number) => {
+      const { id, type } = child;
+      if (type === "category") {
+        return <Category key={id} {...{ id, order, move }} />;
+      }
+
+      return <Product key={id} {...{ id, order, move }} />;
     },
     [move]
   );
+
+  if (isEmpty(children)) {
+    return (
+      <EntitiesContainer>
+        <Create.Category parentId={parentId} />
+        {parentId && <Create.Product categoryId={parentId} />}
+      </EntitiesContainer>
+    );
+  }
+
+  return (
+    <EntitiesContainer>
+      <Create.Category parentId={parentId} />
+      {parentId && <Create.Product categoryId={parentId} />}
+      {children.map(renderChild)}
+    </EntitiesContainer>
+  );
+}
+
+const EntitiesContainer = styled("div")`
+  display: flex;
+  flex-direction: column;
+
+  padding: 0.25em;
+
+  > *:not(:last-child) {
+    margin-bottom: 0.25em;
+  }
+`;
+
+type DragItem = {
+  id: number;
+  order: number;
+  type: string;
+};
+
+interface CategoryProps {
+  id: API.Category["categoryId"];
+  order: number;
+  move: (dragIndex: number, hoverIndex: number) => void;
+}
+export function Category({ id, order, move }: CategoryProps) {
+  const ref = useRef<HTMLDivElement>(null);
+
+  const category = useAtomValue(categoriesAtomFamily(id));
+  const level = useAtomValue(levelAtomFamily(category.parentId));
+
+  const [{ isOpen }, toggle] = useAtom(toggleAtomFamily(id));
+  const children = useAtomValue(selectChildrenAtomFamily(id));
 
   const onClick = useCallback(() => {
     toggle((prev) => ({ ...prev, isOpen: !isOpen }));
   }, [isOpen, toggle]);
 
   const [{ handlerId }, drop] = useDrop<
-    DragCategory,
+    DragItem,
     void,
     { handlerId: Identifier | null }
   >({
-    accept: "category",
+    accept: String(category.parentId),
+    // canDrop: (item) => item.parentId !== category.parentId,
     collect: (monitor) => ({ handlerId: monitor.getHandlerId() }),
-    hover: (item: DragCategory, monitor) => {
+    hover: (item: DragItem, monitor) => {
       if (!ref.current) return;
       const dragIndex = item.order;
-      const hoverIndex = category.order;
+      const hoverIndex = order;
 
       if (dragIndex === hoverIndex) return;
       const hoverRect = ref.current?.getBoundingClientRect();
@@ -78,16 +139,17 @@ export function Category({ categoryId }: CategoryProps) {
 
       if (dragIndex < hoverIndex && hoverClientY < hoverMiddleY) return;
       if (dragIndex > hoverIndex && hoverClientY > hoverMiddleY) return;
-      moveCategory(item, category);
+
+      move(dragIndex, hoverIndex);
       // eslint-disable-next-line no-param-reassign
       item.order = hoverIndex;
     },
   });
 
   const [{ isDragging }, drag] = useDrag({
-    type: "category",
-    item: () => category,
-    collect: (monitor: DragSourceMonitor<API.Category>) => ({
+    type: String(category.parentId),
+    item: () => ({ id, order, type: "category" }),
+    collect: (monitor: DragSourceMonitor<DragItem>) => ({
       isDragging: monitor.isDragging(),
     }),
   });
@@ -99,6 +161,7 @@ export function Category({ categoryId }: CategoryProps) {
       ref={ref}
       data-handler-id={handlerId}
       data-is-dragging={isDragging}
+      data-category-level={level}
     >
       <Description>
         <Delete.Category {...{ category }} />
@@ -109,7 +172,7 @@ export function Category({ categoryId }: CategoryProps) {
         </DescriptionButton>
       </Description>
       {isOpen && (
-        <Entities entities={entities} parentId={category.categoryId} />
+        <Entities entities={children} parentId={category.categoryId} />
       )}
     </CategoryContainer>
   );
@@ -117,6 +180,7 @@ export function Category({ categoryId }: CategoryProps) {
 
 const Description = styled("div")`
   display: flex;
+  color: inherit;
 
   > *:not(:last-child) {
     margin-right: 0.25em;
@@ -133,40 +197,39 @@ const CategoryContainer = styled("div")`
 `;
 
 const DescriptionButton = styled("button")`
+  flex: 1;
+
+  color: inherit;
+  text-align: start;
+
   border: none;
+  background: none;
   border-radius: 4px;
   padding: 0.25em 0.5em;
   cursor: pointer;
 `;
 
-type DragProduct = API.Product;
-
 interface ProductProps {
-  productId: API.Product["productId"];
+  id: API.Product["productId"];
+  order: number;
+  move: (dragIndex: number, hoverIndex: number) => void;
 }
-function Product({ productId }: ProductProps) {
+function Product({ id, order, move }: ProductProps) {
   const ref = useRef<HTMLDivElement>(null);
-  const { value: product } = useAtomValue(productsAtomFamily(productId));
-  const move = useUpdateAtom(moveProductAtom);
 
-  const moveProduct = useCallback(
-    (dragProduct: API.Product, hoverProduct: API.Product) => {
-      move({ dragProduct, hoverProduct });
-    },
-    [move]
-  );
+  const product = useAtomValue(productsAtomFamily(id));
 
   const [{ handlerId }, drop] = useDrop<
-    DragProduct,
+    DragItem,
     void,
     { handlerId: Identifier | null }
   >({
     accept: "product",
     collect: (monitor) => ({ handlerId: monitor.getHandlerId() }),
-    hover: (item: DragProduct, monitor) => {
+    hover: (item: DragItem, monitor) => {
       if (!ref.current) return;
       const dragIndex = item.order;
-      const hoverIndex = product.order;
+      const hoverIndex = order;
 
       if (dragIndex === hoverIndex) return;
       const hoverRect = ref.current?.getBoundingClientRect();
@@ -176,7 +239,8 @@ function Product({ productId }: ProductProps) {
 
       if (dragIndex < hoverIndex && hoverClientY < hoverMiddleY) return;
       if (dragIndex > hoverIndex && hoverClientY > hoverMiddleY) return;
-      moveProduct(item, product);
+
+      move(dragIndex, hoverIndex);
       // eslint-disable-next-line no-param-reassign
       item.order = hoverIndex;
     },
@@ -184,8 +248,8 @@ function Product({ productId }: ProductProps) {
 
   const [{ isDragging }, drag] = useDrag({
     type: "product",
-    item: () => product,
-    collect: (monitor: DragSourceMonitor<API.Product>) => ({
+    item: () => ({ id, order, type: "product", parentId: product.categoryId }),
+    collect: (monitor: DragSourceMonitor<DragItem>) => ({
       isDragging: monitor.isDragging(),
     }),
   });
@@ -197,10 +261,11 @@ function Product({ productId }: ProductProps) {
       ref={ref}
       data-handler-id={handlerId}
       data-is-dragging={isDragging}
+      // data-product-level={entity.ancestors.length}
     >
+      <Select.Product {...{ product }} />
       <Delete.Product {...{ product }} />
       <Update.Product {...{ product }} />
-      <Select.Product {...{ product }} />
       {product.label}
     </ProductContainer>
   );
@@ -218,58 +283,6 @@ const ProductContainer = styled("div")`
 
   &[data-is-dragging="true"] {
     opacity: 0.5;
-  }
-`;
-const ascendingOrder = (a: APP.EntityType, b: APP.EntityType) =>
-  a.value.order - b.value.order;
-
-interface EntitiesProps {
-  entities: APP.EntityType[];
-  parentId: number | null;
-}
-function Entities({ parentId, entities }: EntitiesProps) {
-  if (isEmpty(entities)) {
-    return (
-      <EntitiesContainer>
-        <Create.Category parentId={parentId} />
-        {parentId && <Create.Product categoryId={parentId} />}
-      </EntitiesContainer>
-    );
-  }
-
-  return (
-    <DndProvider backend={TouchBackend} options={{ enableMouseEvents: true }}>
-      <EntitiesContainer>
-        <Create.Category parentId={parentId} />
-        {parentId && <Create.Product categoryId={parentId} />}
-        {entities.sort(ascendingOrder).map((entity) => {
-          if (entity.type === "category") {
-            return (
-              <DndProvider
-                key={entity.id}
-                backend={TouchBackend}
-                options={{ enableMouseEvents: true }}
-              >
-                <Category categoryId={entity.id} key={entity.id} />
-              </DndProvider>
-            );
-          }
-
-          return <Product productId={entity.id} key={entity.id} />;
-        })}
-      </EntitiesContainer>
-    </DndProvider>
-  );
-}
-
-const EntitiesContainer = styled("div")`
-  display: flex;
-  flex-direction: column;
-
-  padding: 0.25em 0.5em;
-
-  > *:not(:last-child) {
-    margin-bottom: 0.25em;
   }
 `;
 

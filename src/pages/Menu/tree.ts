@@ -7,17 +7,76 @@ import { isDefined } from "@utils";
 
 export const menuAtom = atom(async () => client.Menu.getMenu());
 
-type CategoryCollection = Record<
-  API.Category["categoryId"],
-  APP.CategoryEntity
->;
+type Collection<T> = { [key: number]: T };
 
-type ProductCollection = Record<API.Product["productId"], APP.ProductEntity>;
+export const categoriesAtom = atom<Collection<API.Category>>({});
+export const productsAtom = atom<Collection<API.Product>>({});
+export const entitiesAtom = atom<Collection<APP.EntityType>>({});
 
-type SiblingCollection = Record<string, APP.EntityType[]>;
+/**
+ * Here is our chance to do expensive work and prepare the tree data structure.
+ * We create an entity wrapper around each product and category.
+ * We want a discriminator type attribute when we want to render an entity.
+ * We also want to be able to sort the entities by their order attribute.
+ * Root entities are always categories.
+ */
+export const createEntitiesAtom = atom(null, (_get, set, menu: API.Menu) => {
+  const { products, categories } = menu;
 
-export const categoriesAtom = atom<CategoryCollection>({});
-export const productsAtom = atom<ProductCollection>({});
+  const productMap = new Map(products.map((p) => [p.productId, p]));
+  const categoryMap = new Map(categories.map((c) => [c.categoryId, c]));
+  const entities = new Map<number, APP.EntityType>();
+
+  const categoryArray = menu.categories.map((category) => ({
+    id: category.categoryId,
+    parentId: category.parentId,
+    type: "category" as const,
+    value: category,
+  }));
+
+  const productArray = menu.products.map((product) => ({
+    id: product.productId,
+    parentId: product.categoryId,
+    type: "product" as const,
+    value: product,
+  }));
+
+  const entitiyArray = [...categoryArray, ...productArray];
+
+  entities.set(Infinity, {
+    type: "category",
+    id: Infinity,
+    parentId: Infinity,
+    children: categoryArray
+      .filter((item) => item.parentId === null)
+      .map((item) => ({
+        id: item.id,
+        type: item.type,
+        order: item.value.order,
+      })),
+  });
+
+  categoryArray.forEach((category) => {
+    const children = entitiyArray
+      .filter((item) => item.parentId === category.id)
+      .map((item) => ({
+        id: item.id,
+        type: item.type,
+        order: item.value.order,
+      }));
+
+    entities.set(category.id, {
+      type: "category",
+      id: category.id,
+      parentId: category.parentId,
+      children,
+    });
+  });
+
+  set(entitiesAtom, Object.fromEntries(entities));
+  set(categoriesAtom, Object.fromEntries(categoryMap));
+  set(productsAtom, Object.fromEntries(productMap));
+});
 
 export const selectCategoryAtomFamily = atomFamily(
   (categoryId: API.Category["parentId"]) => atom({ categoryId, count: 0 }),
@@ -28,37 +87,6 @@ export const selectProductAtomFamily = atomFamily(
   (productId: API.Product["productId"]) =>
     atom({ isSelected: false, productId }),
   (a, b) => a === b
-);
-
-const selectAncestors = (
-  categories: CategoryCollection,
-  id: number | null
-): APP.EntityType[] => {
-  if (id === null) return [];
-  const category = categories[id];
-  if (!isDefined(category)) return [];
-  return [category, ...selectAncestors(categories, category.parentId)];
-};
-
-export const toggleSelectProductAtom = atom(
-  null,
-  (get, set, product: API.Product) => {
-    const subject = get(selectProductAtomFamily(product.productId));
-
-    set(selectProductAtomFamily(product.productId), {
-      ...subject,
-      isSelected: !subject.isSelected,
-    });
-
-    const ancestors = selectAncestors(get(categoriesAtom), product.categoryId);
-
-    ancestors.forEach((ancestor: APP.EntityType) => {
-      set(selectCategoryAtomFamily(ancestor.id), (prev) => {
-        if (subject.isSelected) return { ...prev, count: prev.count - 1 };
-        return { ...prev, count: prev.count + 1 };
-      });
-    });
-  }
 );
 
 export const toggleAtomFamily = atomFamily(
@@ -73,260 +101,156 @@ export const categoriesAtomFamily = atomFamily(
   (a, b) => a === b
 );
 
+const selectAncestors = (
+  categories: Collection<API.Category>,
+  id: number | null
+): API.Category[] => {
+  if (id === null) return [];
+  const category = categories[id];
+  if (!isDefined(category)) return [];
+  return [category, ...selectAncestors(categories, category.parentId)];
+};
+export const levelAtomFamily = atomFamily(
+  (id: API.Category["parentId"]) =>
+    atom((get) => selectAncestors(get(categoriesAtom), id).length),
+  (a, b) => a === b
+);
+
 export const productsAtomFamily = atomFamily(
   (productId: API.Product["productId"]) =>
     atom((get) => get(productsAtom)[productId]),
   (a, b) => a === b
 );
 
-const isRoot = (category: APP.CategoryEntity) => category.parentId === null;
-export const rootCategoriesAtom = atom((get) =>
-  Object.values(get(categoriesAtom)).filter(isRoot)
+const ascendingOrder = (a: APP.Child, b: APP.Child) => a.order - b.order;
+export const childrenAtomFamily = atomFamily((children: APP.Child[]) =>
+  atom(children.sort(ascendingOrder))
 );
 
-const selectChildren = (id: number) => (entity: APP.EntityType) =>
-  entity.parentId === id;
-
-const makeCategoryEntity = (category: API.Category): APP.CategoryEntity => ({
-  type: "category",
-  id: category.categoryId,
-  parentId: category.parentId,
-  value: category,
-});
-
-const makeProductEntity = (product: API.Product): APP.ProductEntity => ({
-  type: "product",
-  id: product.productId,
-  parentId: product.categoryId,
-  value: product,
-});
-
-const makeProductEntry = (
-  product: API.Product
-): [number, APP.ProductEntity] => [
-  product.productId,
-  makeProductEntity(product),
-];
-
-const makeCategoryEntry = (
-  category: API.Category
-): [number, APP.CategoryEntity] => [
-  category.categoryId,
-  makeCategoryEntity(category),
-];
-
-export const createEntitiesAtom = atom(
-  (get) => get(rootCategoriesAtom),
-  (_get, set, menu: API.Menu) => {
-    const categoryEntries = new Map(menu.categories.map(makeCategoryEntry));
-    const productEntries = new Map(menu.products.map(makeProductEntry));
-    const siblingEntities = new Map<string, APP.EntityType[]>();
-
-    const categories = Object.fromEntries(categoryEntries);
-    const products = Object.fromEntries(productEntries);
-    const entities = [...Object.values(categories), ...Object.values(products)];
-
-    Object.values(categories).forEach((category) => {
-      const children = entities.filter(selectChildren(category.id));
-      siblingEntities.set(String(category.value.categoryId), children);
-    });
-
-    siblingEntities.set("root", Object.values(categories).filter(isRoot));
-
-    set(siblingsAtom, Object.fromEntries(siblingEntities));
-    set(categoriesAtom, categories);
-    set(productsAtom, products);
-  }
-);
-
-function makeSiblingId(parentId: number | null) {
-  return parentId === null ? "root" : String(parentId);
-}
-
-export const siblingsAtom = atom<SiblingCollection>({});
-export const selectSiblings = atomFamily(
-  (parentId: number | null) =>
+export const selectChildrenAtomFamily = atomFamily(
+  (id: number) =>
     atom((get) => {
-      const id = makeSiblingId(parentId);
-      const siblings: APP.EntityType[] = get(siblingsAtom)[id];
-      return isDefined(siblings) ? siblings : [];
+      const entities = get(entitiesAtom)[id];
+      if (!isDefined(entities)) return [];
+      return entities.children;
     }),
   (a, b) => a === b
 );
 
-export const entitiesAtomFamily = atomFamily(
-  (entity: APP.EntityType) => atom(entity),
-  (a, b) => a.id === b.id
+export const createCategoryAtom = atom(
+  null,
+  (get, set, create: API.Category) => {
+    const { categoryId } = create;
+    set(categoriesAtom, (prev) => ({ ...prev, [categoryId]: create }));
+
+    set(entitiesAtom, (prev) => {
+      const parentId = create.parentId === null ? Infinity : create.parentId;
+      const parent = get(entitiesAtom)[parentId];
+
+      const category: APP.EntityType = {
+        id: categoryId,
+        type: "category",
+        parentId,
+        children: [],
+      };
+
+      const child: APP.Child = {
+        id: categoryId,
+        type: "category",
+        order: create.order,
+      };
+
+      return {
+        ...prev,
+        [category.id]: category,
+        [parentId]: { ...parent, children: [...parent.children, child] },
+      };
+    });
+  }
 );
 
-function hasCategory(categoryId: number) {
-  return (e: APP.EntityType) => e.id === categoryId;
-}
+export const createProductAtom = atom(null, (get, set, create: API.Product) => {
+  const { productId, categoryId: parentId } = create;
+  set(productsAtom, (prev) => ({ ...prev, [productId]: create }));
 
-function updateCategory(
-  categoryId: API.Category["categoryId"],
-  category: APP.CategoryEntity
-) {
-  return (entity: APP.EntityType) =>
-    entity.id === categoryId ? category : entity;
-}
+  set(entitiesAtom, (prev) => {
+    const parent = get(entitiesAtom)[create.categoryId];
+
+    const child: APP.Child = {
+      id: productId,
+      type: "product",
+      order: create.order,
+    };
+
+    return {
+      ...prev,
+      [parentId]: { ...parent, children: [...parent.children, child] },
+    };
+  });
+});
 
 export const updateCategoryAtom = atom(
   null,
-  (_get, set, update: API.Category) => {
-    const { categoryId, parentId } = update;
-    const category: APP.CategoryEntity = makeCategoryEntity(update);
+  (_get, set, category: API.Category) => {
+    const { categoryId } = category;
     set(categoriesAtom, (prev) => ({ ...prev, [categoryId]: category }));
-    set(siblingsAtom, (prev) => {
-      const id = makeSiblingId(parentId);
-
-      if (!isDefined(prev[id])) return { ...prev, [id]: [category] };
-
-      if (!prev[id].some(hasCategory(categoryId))) {
-        return { ...prev, [id]: [...prev[id], category] };
-      }
-
-      return {
-        ...prev,
-        [id]: prev[id].map(updateCategory(categoryId, category)),
-      };
-    });
   }
 );
-
-function hasProduct(productId: number) {
-  return (e: APP.EntityType) => e.id === productId;
-}
-
-function updateProduct(
-  categoryId: API.Category["categoryId"],
-  product: APP.ProductEntity
-) {
-  return (entity: APP.EntityType) =>
-    entity.id === categoryId ? product : entity;
-}
 
 export const updateProductAtom = atom(
   null,
-  (_get, set, update: API.Product) => {
-    const { productId, categoryId } = update;
-    const product: APP.ProductEntity = makeProductEntity(update);
+  (_get, set, product: API.Product) => {
+    const { productId } = product;
     set(productsAtom, (prev) => ({ ...prev, [productId]: product }));
-    set(siblingsAtom, (prev) => {
-      const id = String(categoryId);
-
-      if (!isDefined(prev[id])) return { ...prev, [id]: [product] };
-
-      if (!prev[id].some(hasProduct(productId))) {
-        return { ...prev, [id]: [...prev[id], product] };
-      }
-
-      return {
-        ...prev,
-        [id]: prev[id].map(updateProduct(categoryId, product)),
-      };
-    });
   }
 );
-
-function removeSibling(id: number) {
-  return (entity: APP.EntityType) => entity.id !== id;
-}
 
 export const deleteProductAtom = atom(
   null,
   (get, set, { productId, categoryId }: API.Product) => {
     const { [productId]: _, ...products } = get(productsAtom);
-    set(productsAtom, products);
-    set(siblingsAtom, (prev) => {
-      const id = String(categoryId);
-      return { ...prev, [id]: prev[id].filter(removeSibling(productId)) };
+    set(entitiesAtom, (prev) => {
+      const parent = get(entitiesAtom)[categoryId];
+      const children = parent.children.filter(removeChild(productId));
+      return { ...prev, [categoryId]: { ...parent, children } };
     });
+    set(productsAtom, products);
   }
 );
 
+const removeChild = (id: number) => (child: APP.Child) => child.id !== id;
 export const deleteCategoryAtom = atom(
   null,
-  (get, set, { categoryId, parentId }: API.Category) => {
+  (get, set, { parentId, categoryId }: API.Category) => {
     const { [categoryId]: _, ...categories } = get(categoriesAtom);
+    set(entitiesAtom, (prev) => {
+      const id = parentId === null ? Infinity : parentId;
+      const parent = get(entitiesAtom)[id];
+      const children = parent.children.filter(removeChild(categoryId));
+      const { [categoryId]: _, ...entities } = prev;
+      return { ...entities, [id]: { ...parent, children } };
+    });
     set(categoriesAtom, categories);
-    set(siblingsAtom, (prev) => {
-      const id = makeSiblingId(parentId);
-      return { ...prev, [id]: prev[id].filter(removeSibling(categoryId)) };
-    });
   }
 );
 
-type MoveProductUpdate = {
-  dragProduct: API.Product;
-  hoverProduct: API.Product;
-};
-export const moveProductAtom = atom(
+export const toggleSelectProductAtom = atom(
   null,
-  (_get, set, update: MoveProductUpdate) => {
-    const dragProduct = makeProductEntity({
-      ...update.dragProduct,
-      order: update.hoverProduct.order,
+  (get, set, product: API.Product) => {
+    const subject = get(selectProductAtomFamily(product.productId));
+
+    set(selectProductAtomFamily(product.productId), {
+      ...subject,
+      isSelected: !subject.isSelected,
     });
 
-    const hoverProduct = makeProductEntity({
-      ...update.hoverProduct,
-      order: update.dragProduct.order,
-    });
+    const ancestors = selectAncestors(get(categoriesAtom), product.categoryId);
 
-    set(productsAtom, (prev) => ({
-      ...prev,
-      [dragProduct.id]: dragProduct,
-      [hoverProduct.id]: hoverProduct,
-    }));
-
-    set(siblingsAtom, (prev) => {
-      const categoryId = String(dragProduct.parentId);
-      const entities = prev[categoryId].map((entity: APP.EntityType) => {
-        if (entity.type === "category") return entity;
-        if (entity.id === dragProduct.id) return dragProduct;
-        if (entity.id === hoverProduct.id) return hoverProduct;
-        return entity;
+    ancestors.forEach((ancestor: API.Category) => {
+      set(selectCategoryAtomFamily(ancestor.categoryId), (prev) => {
+        if (subject.isSelected) return { ...prev, count: prev.count - 1 };
+        return { ...prev, count: prev.count + 1 };
       });
-
-      return { ...prev, [categoryId]: [...entities] };
-    });
-  }
-);
-
-type MoveCategoryUpdate = {
-  dragCategory: API.Category;
-  hoverCategory: API.Category;
-};
-export const moveCategoryAtom = atom(
-  null,
-  (_get, set, update: MoveCategoryUpdate) => {
-    const dragCategory = makeCategoryEntity({
-      ...update.dragCategory,
-      order: update.hoverCategory.order,
-    });
-
-    const hoverCategory = makeCategoryEntity({
-      ...update.hoverCategory,
-      order: update.dragCategory.order,
-    });
-
-    set(categoriesAtom, (prev) => ({
-      ...prev,
-      [dragCategory.id]: dragCategory,
-      [hoverCategory.id]: hoverCategory,
-    }));
-
-    set(siblingsAtom, (prev) => {
-      const id = makeSiblingId(dragCategory.parentId);
-      const entities = prev[id].map((entity: APP.EntityType) => {
-        if (entity.type === "product") return entity;
-        if (entity.id === dragCategory.id) return dragCategory;
-        if (entity.id === hoverCategory.id) return hoverCategory;
-        return entity;
-      });
-
-      return { ...prev, [id]: [...entities] };
     });
   }
 );

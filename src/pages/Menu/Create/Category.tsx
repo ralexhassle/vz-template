@@ -7,7 +7,7 @@ import { Dialog, Spinner } from "@app/components";
 import { client } from "@app/config";
 import { STATUS } from "@app/constants";
 
-import { updateCategoryAtom } from "../tree";
+import { createCategoryAtom } from "../tree";
 
 interface UpdateCategory {
   description: string;
@@ -24,12 +24,12 @@ const postCategoryAtom = atom(
       const category = await client.Menu.postCategory({
         description,
         enabled: true,
-        order: 8,
+        order: 90,
         parentId,
       });
 
       set(postCategoryStatusAtom, STATUS.RESOLVED);
-      set(updateCategoryAtom, category);
+      set(createCategoryAtom, category);
     } catch (error) {
       set(postCategoryStatusAtom, STATUS.REJECTED);
     }
@@ -131,7 +131,7 @@ const Button = styled("button")`
   padding: 0.25em 0.5em;
 
   border: none;
-  border-radius: 4px;
+  background: none;
   cursor: pointer;
 
   > svg {

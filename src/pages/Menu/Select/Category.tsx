@@ -23,7 +23,6 @@ interface Props {
 }
 function SelectCategory({ category }: Props) {
   const { categoryId } = category;
-
   const { count } = useAtomValue(selectCategoryAtomFamily(categoryId));
 
   return (
@@ -33,11 +32,11 @@ function SelectCategory({ category }: Props) {
   );
 }
 
-const Container = styled("div")`
+const Container = styled("button")`
   padding: 0.25em 0.5em;
 
   border: none;
-  border-radius: 4px;
+  background: none;
   cursor: pointer;
 
   &[data-is-selected="true"] {

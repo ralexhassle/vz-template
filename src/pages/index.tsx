@@ -3,6 +3,7 @@ import styled from "@emotion/styled";
 
 import Menu from "./Menu";
 import Games from "./Games";
+import Playground from "./Playground";
 
 function Introduction() {
   return <code>React + Vite + Typescript + ESLint + Jotai + Router</code>;
@@ -15,6 +16,7 @@ function App() {
       <Navigation>
         <NavLink to="/menu">Menu</NavLink>
         <NavLink to="/games">Games</NavLink>
+        <NavLink to="/playground">Playground</NavLink>
       </Navigation>
       <Outlet />
     </Container>
@@ -46,7 +48,7 @@ const Container = styled("main")`
   font-size: calc(10px + 2vmin);
   color: white;
 
-  background-color: #282c34;
+  background-color: rgb(240, 240, 240);
 
   > code {
     text-align: center;
@@ -60,6 +62,7 @@ function Pages() {
         <Route index element={<Introduction />} />
         <Route path="menu" element={<Menu />} />
         <Route path="games" element={<Games />} />
+        <Route path="playground" element={<Playground />} />
       </Route>
     </Routes>
   );

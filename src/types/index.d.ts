@@ -23,20 +23,17 @@ type ButtonProps = DetailedHTMLProps<
   HTMLButtonElement
 >;
 
-interface CategoryEntity {
-  type: "category";
-  id: API.Category["categoryId"];
-  parentId: API.Category["parentId"];
-  value: API.Category;
+interface Child {
+  id: number;
+  order: number;
+  type: "product" | "category";
 }
 
-interface ProductEntity {
-  type: "product";
-  id: API.Product["productId"];
-  parentId: API.Product["categoryId"];
-  value: API.Product;
+interface EntityType {
+  type: "product" | "category";
+  id: number;
+  parentId: number | null;
+  children: Child[];
 }
-
-type EntityType = ProductEntity | CategoryEntity;
 
 export as namespace APP;

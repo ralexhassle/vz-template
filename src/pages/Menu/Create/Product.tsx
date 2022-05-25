@@ -7,7 +7,7 @@ import { Dialog, Spinner } from "@app/components";
 import { client } from "@app/config";
 import { STATUS } from "@app/constants";
 
-import { updateProductAtom } from "../tree";
+import { createProductAtom } from "../tree";
 
 interface UpdateCategory {
   label: string;
@@ -40,7 +40,7 @@ const postProductAtom = atom(
       });
 
       set(postProductStatusAtom, STATUS.RESOLVED);
-      set(updateProductAtom, product);
+      set(createProductAtom, product);
     } catch (error) {
       set(postProductStatusAtom, STATUS.REJECTED);
     }
@@ -139,7 +139,7 @@ const Button = styled("button")`
   padding: 0.25em 0.5em;
 
   border: none;
-  border-radius: 4px;
+  background: none;
   cursor: pointer;
 
   > svg {

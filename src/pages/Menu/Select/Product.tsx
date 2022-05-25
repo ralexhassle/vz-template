@@ -24,11 +24,10 @@ interface Props {
   product: API.Product;
 }
 function SelectProduct({ product }: Props) {
+  const toggle = useUpdateAtom(toggleSelectProductAtom);
   const { isSelected } = useAtomValue(
     selectProductAtomFamily(product.productId)
   );
-
-  const toggle = useUpdateAtom(toggleSelectProductAtom);
 
   const onClick = useCallback(() => {
     toggle(product);
@@ -45,7 +44,7 @@ const Container = styled("button")`
   padding: 0.25em 0.5em;
 
   border: none;
-  border-radius: 4px;
+  background: none;
   cursor: pointer;
 
   &[data-is-selected="true"] {

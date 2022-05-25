@@ -3,6 +3,8 @@ import styled from "@emotion/styled";
 import { Suspense, useEffect } from "react";
 import { useUpdateAtom } from "jotai/utils";
 import { useAtom } from "jotai";
+import { TouchBackend } from "react-dnd-touch-backend";
+import { DndProvider } from "react-dnd";
 
 import { RootCategory } from "./Entity";
 
@@ -26,6 +28,21 @@ function Tree() {
 const RootTreeContainer = styled("div")`
   width: 100%;
 
+  [data-category-level="0"] {
+    background: #606060;
+    color: white;
+  }
+
+  [data-category-level="1"] {
+    background: #f0f0f0;
+    color: rgb(96, 96, 96);
+  }
+
+  [data-category-level="2"] {
+    background: white;
+    color: rgb(96, 96, 96);
+  }
+
   > *:not(:last-child) {
     margin-bottom: 0.25em;
   }
@@ -36,7 +53,12 @@ function Menu() {
     <Root>
       <Title>Menu</Title>
       <Suspense fallback="...loading">
-        <Tree />
+        <DndProvider
+          backend={TouchBackend}
+          options={{ enableMouseEvents: true }}
+        >
+          <Tree />
+        </DndProvider>
       </Suspense>
     </Root>
   );
