@@ -9,6 +9,7 @@ export const menuAtom = atom(async () => client.Menu.getMenu());
 
 type Collection<T> = { [key: number]: T };
 
+export const isEditableAtom = atom(false);
 export const categoriesAtom = atom<Collection<API.Category>>({});
 export const productsAtom = atom<Collection<API.Product>>({});
 export const entitiesAtom = atom<Collection<APP.EntityType>>({});

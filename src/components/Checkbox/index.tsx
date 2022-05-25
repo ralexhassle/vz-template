@@ -14,10 +14,17 @@ interface CheckboxProps {
   children: ReactNode;
   checked: boolean;
   toggle: VoidFunction;
+  className?: string;
 }
-function Checkbox({ name, checked, children, toggle }: CheckboxProps) {
+function Checkbox({
+  name,
+  checked,
+  children,
+  toggle,
+  className,
+}: CheckboxProps) {
   return (
-    <label htmlFor={name}>
+    <Label htmlFor={name} className={className}>
       <input
         id={name}
         style={{ display: "none" }}
@@ -39,10 +46,11 @@ function Checkbox({ name, checked, children, toggle }: CheckboxProps) {
         </svg>
       </CheckmarkContainer>
       <span>{children}</span>
-    </label>
+    </Label>
   );
 }
 
+const Label = styled("label")``;
 const CheckmarkContainer = styled("div")``;
 
 export default Checkbox;

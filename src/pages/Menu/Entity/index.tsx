@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
-import { DndProvider, DragSourceMonitor, useDrag, useDrop } from "react-dnd";
+import { DragSourceMonitor, useDrag, useDrop } from "react-dnd";
 import { useCallback, useRef } from "react";
 import { useAtomValue, useAtom } from "jotai";
-import { TouchBackend } from "react-dnd-touch-backend";
 import styled from "@emotion/styled";
 
 import type { Identifier, XYCoord } from "dnd-core";
@@ -12,6 +11,7 @@ import { isEmpty } from "@app/utils";
 import Update from "../Update";
 import Delete from "../Delete";
 import Create from "../Create";
+import Select from "../Select";
 
 import {
   categoriesAtomFamily,
@@ -20,24 +20,34 @@ import {
   selectChildrenAtomFamily,
   childrenAtomFamily,
   levelAtomFamily,
+  isEditableAtom,
 } from "../tree";
-import Select from "../Select";
 
 const ROOT_ID = Infinity;
 export function RootCategory() {
   const children = useAtomValue(selectChildrenAtomFamily(ROOT_ID));
+  const isEditable = useAtomValue(isEditableAtom);
+
+  if (isEditable) {
+    return (
+      <CategoryContainer>
+        <EditableEntities entities={children} parentId={null} />
+      </CategoryContainer>
+    );
+  }
+
   return (
     <CategoryContainer>
-      <Entities entities={children} parentId={null} />
+      <Entities entities={children} />
     </CategoryContainer>
   );
 }
 
-interface EntitiesProps {
+interface EditableEntitiesProps {
   entities: APP.EntityType["children"];
   parentId: number | null;
 }
-function Entities({ parentId, entities }: EntitiesProps) {
+function EditableEntities({ parentId, entities }: EditableEntitiesProps) {
   const [children, setChildren] = useAtom(childrenAtomFamily(entities));
 
   const move = useCallback(
@@ -57,10 +67,10 @@ function Entities({ parentId, entities }: EntitiesProps) {
     (child: APP.Child, order: number) => {
       const { id, type } = child;
       if (type === "category") {
-        return <Category key={id} {...{ id, order, move }} />;
+        return <EditableCategory key={id} {...{ id, order, move }} />;
       }
 
-      return <Product key={id} {...{ id, order, move }} />;
+      return <EditableProduct key={id} {...{ id, order, move }} />;
     },
     [move]
   );
@@ -83,6 +93,21 @@ function Entities({ parentId, entities }: EntitiesProps) {
   );
 }
 
+interface EntitiesProps {
+  entities: APP.EntityType["children"];
+}
+function Entities({ entities }: EntitiesProps) {
+  const [children] = useAtom(childrenAtomFamily(entities));
+
+  const renderChild = useCallback((child: APP.Child, order: number) => {
+    const { id, type } = child;
+    if (type === "category") return <Category key={id} {...{ id, order }} />;
+    return <Product key={id} {...{ id, order }} />;
+  }, []);
+
+  return <EntitiesContainer>{children.map(renderChild)}</EntitiesContainer>;
+}
+
 const EntitiesContainer = styled("div")`
   display: flex;
   flex-direction: column;
@@ -94,18 +119,45 @@ const EntitiesContainer = styled("div")`
   }
 `;
 
+interface CategoryProps {
+  id: API.Category["categoryId"];
+}
+export function Category({ id }: CategoryProps) {
+  const category = useAtomValue(categoriesAtomFamily(id));
+  const level = useAtomValue(levelAtomFamily(category.parentId));
+
+  const [{ isOpen }, toggle] = useAtom(toggleAtomFamily(id));
+  const children = useAtomValue(selectChildrenAtomFamily(id));
+
+  const onClick = useCallback(() => {
+    toggle((prev) => ({ ...prev, isOpen: !isOpen }));
+  }, [isOpen, toggle]);
+
+  return (
+    <CategoryContainer data-category-level={level}>
+      <Description>
+        <Select.Category {...{ category }} />
+        <DescriptionButton onClick={onClick} type="button">
+          {category.description}
+        </DescriptionButton>
+      </Description>
+      {isOpen && <Entities entities={children} />}
+    </CategoryContainer>
+  );
+}
+
 type DragItem = {
   id: number;
   order: number;
   type: string;
 };
 
-interface CategoryProps {
+interface EditableCategoryProps {
   id: API.Category["categoryId"];
   order: number;
   move: (dragIndex: number, hoverIndex: number) => void;
 }
-export function Category({ id, order, move }: CategoryProps) {
+export function EditableCategory({ id, order, move }: EditableCategoryProps) {
   const ref = useRef<HTMLDivElement>(null);
 
   const category = useAtomValue(categoriesAtomFamily(id));
@@ -124,7 +176,6 @@ export function Category({ id, order, move }: CategoryProps) {
     { handlerId: Identifier | null }
   >({
     accept: String(category.parentId),
-    // canDrop: (item) => item.parentId !== category.parentId,
     collect: (monitor) => ({ handlerId: monitor.getHandlerId() }),
     hover: (item: DragItem, monitor) => {
       if (!ref.current) return;
@@ -172,7 +223,7 @@ export function Category({ id, order, move }: CategoryProps) {
         </DescriptionButton>
       </Description>
       {isOpen && (
-        <Entities entities={children} parentId={category.categoryId} />
+        <EditableEntities entities={children} parentId={category.categoryId} />
       )}
     </CategoryContainer>
   );
@@ -205,16 +256,32 @@ const DescriptionButton = styled("button")`
   border: none;
   background: none;
   border-radius: 4px;
-  padding: 0.25em 0.5em;
+  padding: 0.25em 0.5em 0.25em 0;
   cursor: pointer;
 `;
 
 interface ProductProps {
   id: API.Product["productId"];
+}
+function Product({ id }: ProductProps) {
+  const product = useAtomValue(productsAtomFamily(id));
+
+  return (
+    <ProductContainer
+    // data-product-level={entity.ancestors.length}
+    >
+      <Select.Product {...{ product }} />
+      {product.label}
+    </ProductContainer>
+  );
+}
+
+interface EditableProductProps {
+  id: API.Product["productId"];
   order: number;
   move: (dragIndex: number, hoverIndex: number) => void;
 }
-function Product({ id, order, move }: ProductProps) {
+function EditableProduct({ id, order, move }: EditableProductProps) {
   const ref = useRef<HTMLDivElement>(null);
 
   const product = useAtomValue(productsAtomFamily(id));

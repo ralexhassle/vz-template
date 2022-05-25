@@ -26,9 +26,11 @@ function App() {
 const Navigation = styled("nav")`
   display: flex;
 
+  margin-bottom: 1em;
+
   a {
-    color: white;
-    margin: 1em;
+    color: rgb(96, 96, 96);
+    margin-right: 1em;
 
     text-decoration: underline;
   }
@@ -46,7 +48,7 @@ const Container = styled("main")`
   padding: 1em;
 
   font-size: calc(10px + 2vmin);
-  color: white;
+  color: rgb(96, 96, 96);
 
   background-color: rgb(240, 240, 240);
 
