@@ -6,10 +6,10 @@ import { useAtom } from "jotai";
 import { TouchBackend } from "react-dnd-touch-backend";
 import { DndProvider } from "react-dnd";
 
-import { RootCategory } from "./Entity";
-
-import { createEntitiesAtom, isEditableAtom, menuAtom } from "./tree";
 import { Checkbox } from "@app/components";
+
+import { RootCategory } from "./Entity";
+import { createEntitiesAtom, isEditableAtom, menuAtom } from "./tree";
 
 function Tree() {
   const [menu] = useAtom(menuAtom);
@@ -29,23 +29,60 @@ function Tree() {
 const RootTreeContainer = styled("div")`
   width: 100%;
 
+  --wishlist-color: #41b9ef;
+
+  --like-product-color: var(--wishlist-color);
+  --like-category-color: var(--wishlist-color);
+
+  [data-category] {
+    border-radius: 0.5em;
+  }
+
   [data-category-level="0"] {
-    background: #606060;
-    color: white;
+    color: var(--wishlist-color);
+
+    --create-category-icon: var(--wishlist-color);
+    --create-category-color: var(--wishlist-color);
+
+    --create-product-icon: var(--wishlist-color);
+    --create-product-color: var(--wishlist-color);
   }
 
   [data-category-level="1"] {
-    background: #f0f0f0;
-    color: rgb(96, 96, 96);
+    background: #606060;
+    color: white;
+
+    --create-category-icon: var(--wishlist-color);
+    --create-category-color: white;
+
+    --create-product-icon: var(--wishlist-color);
+    --create-product-color: white;
   }
 
   [data-category-level="2"] {
+    background: #f0f0f0;
+    color: rgb(96, 96, 96);
+
+    --create-category-icon: var(--wishlist-color);
+    --create-category-color: var(--wishlist-color);
+
+    --create-product-icon: var(--wishlist-color);
+    --create-product-color: var(--wishlist-color);
+  }
+
+  [data-category-level="3"] {
     background: white;
     color: rgb(96, 96, 96);
+
+    --create-category-icon: var(--wishlist-color);
+    --create-category-color: var(--wishlist-color);
+
+    --create-product-icon: var(--wishlist-color);
+    --create-product-color: var(--wishlist-color);
   }
 
   > *:not(:last-child) {
-    margin-bottom: 0.25em;
+    margin-bottom: 0.5em;
   }
 `;
 

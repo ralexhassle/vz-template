@@ -14,11 +14,19 @@ function Root() {
 }
 
 const styles = css`
+  @import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;900&display=swap");
+
   body {
     margin: 0;
-    font-family: -apple-system, sans-serif;
+    font-family: "Montserrat", sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+
+    --font-regular: 400;
+    --font-medium: 500;
+    --font-semiBold: 600;
+    --font-bold: 700;
+    --font-black: 900;
   }
 
   #root {

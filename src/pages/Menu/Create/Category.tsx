@@ -128,14 +128,16 @@ const Button = styled("button")`
   align-items: center;
   align-self: flex-start;
 
-  padding: 0.25em 0.5em;
+  padding: 0;
+
+  color: var(--create-category-color);
 
   border: none;
   background: none;
   cursor: pointer;
 
   > svg {
-    color: green;
+    color: var(--create-category-icon);
     margin-right: 0.5em;
   }
 `;

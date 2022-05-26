@@ -23,6 +23,12 @@ type ButtonProps = DetailedHTMLProps<
   HTMLButtonElement
 >;
 
+type DragItem = {
+  id: number;
+  order: number;
+  type: string;
+};
+
 interface Child {
   id: number;
   order: number;

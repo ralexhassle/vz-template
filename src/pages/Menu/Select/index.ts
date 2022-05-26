@@ -1,7 +1,7 @@
-import SelectCategory from "./Category";
-import SelectProduct from "./Product";
+import CategorySelect from "./Category";
+import ProductSelect from "./Product";
 
 export default {
-  Product: SelectProduct,
-  Category: SelectCategory,
+  Category: CategorySelect,
+  Product: ProductSelect,
 };

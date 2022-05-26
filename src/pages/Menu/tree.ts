@@ -79,8 +79,20 @@ export const createEntitiesAtom = atom(null, (_get, set, menu: API.Menu) => {
   set(productsAtom, Object.fromEntries(productMap));
 });
 
-export const selectCategoryAtomFamily = atomFamily(
+export const likeCategoryCount = atomFamily(
   (categoryId: API.Category["parentId"]) => atom({ categoryId, count: 0 }),
+  (a, b) => a === b
+);
+
+export const likeProductAtomFamily = atomFamily(
+  (productId: API.Product["productId"]) =>
+    atom({ isSelected: false, productId }),
+  (a, b) => a === b
+);
+
+export const selectCategoryAtomFamily = atomFamily(
+  (categoryId: API.Category["categoryId"]) =>
+    atom({ isSelected: false, categoryId }),
   (a, b) => a === b
 );
 
@@ -235,12 +247,12 @@ export const deleteCategoryAtom = atom(
   }
 );
 
-export const toggleSelectProductAtom = atom(
+export const toggleLikeProductAtom = atom(
   null,
   (get, set, product: API.Product) => {
-    const subject = get(selectProductAtomFamily(product.productId));
+    const subject = get(likeProductAtomFamily(product.productId));
 
-    set(selectProductAtomFamily(product.productId), {
+    set(likeProductAtomFamily(product.productId), {
       ...subject,
       isSelected: !subject.isSelected,
     });
@@ -248,7 +260,7 @@ export const toggleSelectProductAtom = atom(
     const ancestors = selectAncestors(get(categoriesAtom), product.categoryId);
 
     ancestors.forEach((ancestor: API.Category) => {
-      set(selectCategoryAtomFamily(ancestor.categoryId), (prev) => {
+      set(likeCategoryCount(ancestor.categoryId), (prev) => {
         if (subject.isSelected) return { ...prev, count: prev.count - 1 };
         return { ...prev, count: prev.count + 1 };
       });

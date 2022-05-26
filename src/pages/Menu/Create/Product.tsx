@@ -136,14 +136,16 @@ const Button = styled("button")`
   align-items: center;
   align-self: flex-start;
 
-  padding: 0.25em 0.5em;
+  padding: 0;
 
-  border: none;
+  color: var(--create-product-color);
+
   background: none;
+  border: none;
   cursor: pointer;
 
   > svg {
-    color: green;
+    color: var(--create-product-icon);
     margin-right: 0.5em;
   }
 `;

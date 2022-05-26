@@ -1,7 +1,7 @@
 import styled from "@emotion/styled";
 import { useAtomValue } from "jotai";
 
-import { selectProductAtomFamily } from "../tree";
+import { likeCategoryCount } from "../tree";
 
 function Icon() {
   return (
@@ -19,21 +19,23 @@ function Icon() {
 }
 
 interface Props {
-  product: API.Product;
+  category: API.Category;
 }
-function SelectProduct({ product }: Props) {
-  const { productId } = product;
-  const isSelected = useAtomValue(selectProductAtomFamily(productId));
+function LikeCategory({ category }: Props) {
+  const { categoryId } = category;
+  const { count } = useAtomValue(likeCategoryCount(categoryId));
+
+  if (count === 0) return null;
 
   return (
-    <Container data-is-selected={isSelected}>
+    <Container data-is-selected={count > 0}>
       <Icon />
     </Container>
   );
 }
 
-const Container = styled("button")`
-  padding: 0.25em 0 0.25em 0.5em;
+const Container = styled("div")`
+  margin-right: 0.25em;
 
   border: none;
   background: none;
@@ -47,4 +49,4 @@ const Container = styled("button")`
   opacity: 0;
 `;
 
-export default SelectProduct;
+export default LikeCategory;
