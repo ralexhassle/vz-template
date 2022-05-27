@@ -57,6 +57,15 @@ const RootTreeContainer = styled("div")`
 
     --create-product-icon: var(--wishlist-color);
     --create-product-color: white;
+
+    --select-category: 2px 2px 6px #4c4c4c, -2px -2px 6px #868686;
+    --unselect-category: inset 2px 2px 6px #4c4c4c, inset -2px -2px 6px #868686;
+
+    --select-product: 2px 2px 6px #4c4c4c, -2px -2px 6px #868686;
+    --unselect-product: inset 2px 2px 6px #4c4c4c, inset -2px -2px 6px #868686;
+
+    --like-product: 2px 2px 6px #4c4c4c, -2px -2px 6px #868686;
+    --unlike-product: inset 2px 2px 6px #4c4c4c, inset -2px -2px 6px #868686;
   }
 
   [data-category-level="2"] {
@@ -68,6 +77,16 @@ const RootTreeContainer = styled("div")`
 
     --create-product-icon: var(--wishlist-color);
     --create-product-color: var(--wishlist-color);
+
+    --select-category: 2px 2px 6px #bebebe61, -2px -2px 6px #ffffff;
+    --unselect-category: inset 2px 2px 6px #bebebe61,
+      inset -2px -2px 6px #ffffff;
+
+    --select-product: 2px 2px 6px #bebebe61, -2px -2px 6px #ffffff;
+    --unselect-product: inset 2px 2px 6px #bebebe61, inset -2px -2px 6px #ffffff;
+
+    --like-product: 2px 2px 6px #bebebe61, -2px -2px 6px #ffffff;
+    --unlike-product: inset 2px 2px 6px #bebebe61, inset -2px -2px 6px #ffffff;
   }
 
   [data-category-level="3"] {
@@ -86,6 +105,11 @@ const RootTreeContainer = styled("div")`
   }
 `;
 
+const options = {
+  enableMouseEvents: true,
+  delayTouchStart: 150,
+};
+
 function Menu() {
   const [isEditable, toggleIsEditable] = useAtom(isEditableAtom);
 
@@ -100,10 +124,7 @@ function Menu() {
         Activer le mode édition
       </EditableCheckbox>
       <Suspense fallback="...loading">
-        <DndProvider
-          backend={TouchBackend}
-          options={{ enableMouseEvents: true }}
-        >
+        <DndProvider backend={TouchBackend} options={options}>
           <Tree />
         </DndProvider>
       </Suspense>

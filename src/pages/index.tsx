@@ -45,7 +45,7 @@ const Container = styled("main")`
   flex-direction: column;
 
   min-height: 100vh;
-  padding: 1em;
+  padding: 0.5em;
 
   font-size: calc(10px + 2vmin);
   color: rgb(96, 96, 96);

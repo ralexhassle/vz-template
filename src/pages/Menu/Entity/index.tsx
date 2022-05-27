@@ -24,6 +24,7 @@ import {
   levelAtomFamily,
   isEditableAtom,
 } from "../tree";
+import Select from "../Select";
 
 const ROOT_ENTITY_ID = Infinity;
 export function RootCategory() {
@@ -72,16 +73,16 @@ function EditableEntities({ parentId, entities }: EditableEntitiesProps) {
   if (isEmpty(children)) {
     return (
       <Fragment>
-        <Create.Category parentId={parentId} />
-        {parentId && <Create.Product categoryId={parentId} />}
+        {/* <Create.Category parentId={parentId} />
+        {parentId && <Create.Product categoryId={parentId} />} */}
       </Fragment>
     );
   }
 
   return (
     <Fragment>
-      <Create.Category parentId={parentId} />
-      {parentId && <Create.Product categoryId={parentId} />}
+      {/* <Create.Category parentId={parentId} />
+      {parentId && <Create.Product categoryId={parentId} />} */}
       {children.map(renderChild)}
     </Fragment>
   );
@@ -215,12 +216,12 @@ export function EditableCategory({ id, order, move }: EditableCategoryProps) {
       data-category
     >
       <CategorHeader>
-        {/* <Delete.Category {...{ category }} />
-        <Update.Category {...{ category }} /> */}
-        <ToggleButton onClick={onClick} type="button">
-          <Description>{category.description}</Description>
-          <ToggleIndicator isOpen={isOpen} />
-        </ToggleButton>
+        <Select.Category {...{ category }}>
+          <ToggleButton onClick={onClick} type="button">
+            <Description>{category.description}</Description>
+            <ToggleIndicator isOpen={isOpen} />
+          </ToggleButton>
+        </Select.Category>
       </CategorHeader>
       {isOpen && (
         <EntitiesContainer>
@@ -260,10 +261,6 @@ const CategorHeader = styled("div")`
   display: flex;
 
   color: inherit;
-
-  > *:not(:last-child) {
-    margin-right: 0.25em;
-  }
 `;
 
 const CategoryContainer = styled("div")`

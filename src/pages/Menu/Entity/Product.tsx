@@ -11,6 +11,7 @@ import Delete from "../Delete";
 import Like from "../Like";
 
 import { productsAtomFamily, levelAtomFamily } from "../tree";
+import Select from "../Select";
 
 const getFrenchPrice = (value: number) => {
   const PRICE_DECIMAL = 2;
@@ -54,7 +55,7 @@ interface ProductPriceProps {
 function ProductPrice({ label, value }: ProductPriceProps) {
   return (
     <ProductPriceContainer>
-      <ProductPriceLabel>{label}</ProductPriceLabel>
+      {label && <ProductPriceLabel>{label}</ProductPriceLabel>}
       <ProductPriceValue>{getFrenchPrice(value)}</ProductPriceValue>
     </ProductPriceContainer>
   );
@@ -66,7 +67,10 @@ const ProductPriceContainer = styled("div")`
   justify-content: space-between;
 `;
 
-const ProductPriceLabel = styled("span")``;
+const ProductPriceLabel = styled("span")`
+  font-weight: var(--font-semiBold);
+`;
+
 const ProductPriceValue = styled("span")``;
 
 interface ProductBodyProps {
@@ -77,18 +81,47 @@ function ProductBody({ product }: ProductBodyProps) {
   const isPriceSingle = prices.length === 1 && !prices[0].label;
   const { description } = product;
 
+  if (isPriceSingle) {
+    return (
+      <ProductBodyContainer>
+        <SingleProductContainer>
+          <ProductLabel>{product.label}</ProductLabel>
+          <SingleProductPricesContainer>
+            {prices.map(({ id, label, value }) => (
+              <ProductPrice key={id} {...{ label, value }} />
+            ))}
+          </SingleProductPricesContainer>
+        </SingleProductContainer>
+        {description && <ProductDescription>{description}</ProductDescription>}
+      </ProductBodyContainer>
+    );
+  }
+
   return (
     <ProductBodyContainer>
-      <ProductPricesContainer data-is-price-single={isPriceSingle}>
+      <ProductPricesContainer>
         <ProductLabel>{product.label}</ProductLabel>
+        {description && <ProductDescription>{description}</ProductDescription>}
         {prices.map(({ id, label, value }) => (
           <ProductPrice key={id} {...{ label, value }} />
         ))}
       </ProductPricesContainer>
-      {description && <ProductDescription>{description}</ProductDescription>}
     </ProductBodyContainer>
   );
 }
+
+const SingleProductContainer = styled("div")`
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  width: 100%;
+`;
+
+const SingleProductPricesContainer = styled("div")`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+`;
 
 const ProductPricesContainer = styled("div")`
   display: flex;
@@ -96,11 +129,6 @@ const ProductPricesContainer = styled("div")`
   align-items: flex-start;
 
   width: 100%;
-
-  &[data-is-price-single="true"] {
-    flex-direction: row;
-    justify-content: space-between;
-  }
 `;
 
 const ProductBodyContainer = styled("div")`
@@ -112,11 +140,13 @@ const ProductBodyContainer = styled("div")`
 `;
 
 const ProductLabel = styled("span")`
-  font-weight: var(--font-semiBold);
+  font-weight: var(--font-bold);
+  text-align: justify;
 `;
 
 const ProductDescription = styled("p")`
   text-align: justify;
+  font-style: italic;
 `;
 
 interface ProductProps {
@@ -190,9 +220,9 @@ function EditableProduct({ id, order, move }: EditableProductProps) {
       data-is-dragging={isDragging}
       data-product-level={level}
     >
-      {/* <Delete.Product {...{ product }} />
-      <Update.Product {...{ product }} /> */}
-      <ProductBody {...{ product }} />
+      <Select.Product {...{ product }}>
+        <ProductBody {...{ product }} />
+      </Select.Product>
     </ProductContainer>
   );
 }
@@ -208,7 +238,7 @@ const ProductContainer = styled("div")`
   }
 
   &[data-is-dragging="true"] {
-    opacity: 0.5;
+    opacity: 0.3;
   }
 `;
 

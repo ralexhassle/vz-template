@@ -43,17 +43,21 @@ function LikeProduct({ product, children }: Props) {
 }
 
 const LikeIconContainer = styled("div")`
-  padding: 0.25em;
+  display: flex;
+  align-self: stretch;
+  align-items: center;
+
+  padding: 0.5em;
   margin-right: 0.5em;
 
   color: rgb(228, 224, 225);
 
   border-radius: 0.25em;
-  box-shadow: 2px 2px 6px #bebebe61, -2px -2px 6px #ffffff;
+  box-shadow: var(--like-product);
 
   &[data-is-selected="true"] {
     color: var(--like-product-color);
-    box-shadow: inset 2px 2px 6px #bebebe61, inset -2px -2px 6px #ffffff;
+    box-shadow: var(--unlike-product);
   }
 `;
 
