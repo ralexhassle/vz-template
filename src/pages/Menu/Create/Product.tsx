@@ -3,7 +3,7 @@ import { useUpdateAtom } from "jotai/utils";
 import { atom, useAtom } from "jotai";
 import styled from "@emotion/styled";
 
-import { Dialog, Spinner } from "@app/components";
+import { Dialog, Spinner, Pushable, TextInput } from "@app/components";
 import { client } from "@app/config";
 import { STATUS } from "@app/constants";
 
@@ -66,22 +66,33 @@ function AddProductDialog({ toggleDialog, categoryId }: AddProductProps) {
   return (
     <Spinner isLoading={status === STATUS.PENDING} onSuccess={toggleDialog}>
       <EditProductContainer onSubmit={onSubmit}>
-        <TextInput value={label} onChange={(e) => set(e.target.value)} />
-        <SaveButton disabled={status === STATUS.PENDING}>SAVE</SaveButton>
+        <Title>Créer un produit</Title>
+        <TextInputStyled value={label} onChange={(e) => set(e.target.value)} />
+        <Pushable disabled={status === STATUS.PENDING}>Ajouter</Pushable>
       </EditProductContainer>
     </Spinner>
   );
 }
 
-const TextInput = styled("input")`
-  width: 100%;
-  padding: 0.5em;
+const Title = styled("h2")`
+  margin-bottom: 0.5em;
+  font-weight: var(--font-bold);
+  text-align: center;
+`;
+
+const TextInputStyled = styled(TextInput)`
+  > input {
+    padding: 0.5em;
+  }
+
   margin-bottom: 1em;
 `;
 
 const EditProductContainer = styled("form")`
   display: flex;
   flex-direction: column;
+
+  color: rgb(96, 96, 96);
 `;
 
 const SaveButton = styled("button")`

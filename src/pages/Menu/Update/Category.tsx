@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
-import { Fragment, useReducer, useState } from "react";
+import { useCallback, useReducer, useState } from "react";
 import { useUpdateAtom } from "jotai/utils";
 import styled from "@emotion/styled";
 
-import { Dialog } from "@components";
+import { Checkbox, Dialog, Pushable, TextInput } from "@components";
 
 import { updateCategoryAtom } from "../tree";
 
@@ -13,41 +13,61 @@ interface UpdateCategoryDialogProps {
 }
 function UpdateCategoryDialog({ category, toggle }: UpdateCategoryDialogProps) {
   const [description, set] = useState(category.description);
+  const [isEnabled, toggleEnabled] = useReducer((s) => !s, category.enabled);
   const update = useUpdateAtom(updateCategoryAtom);
 
   const onClick = () => {
-    update({ ...category, description });
+    update({ ...category, description, enabled: isEnabled });
     toggle();
   };
 
   return (
     <UpdateCategoryContainer>
-      <TextInput value={description} onChange={(e) => set(e.target.value)} />
-      <SaveButton onClick={onClick}>SAVE</SaveButton>
+      <Title>Modifier une catégorie</Title>
+      <EnableCheckbox name="enabled" checked={isEnabled} toggle={toggleEnabled}>
+        Activer la catégorie
+      </EnableCheckbox>
+      <TextInputStyled
+        value={description}
+        onChange={(e) => set(e.target.value)}
+      />
+      <Pushable onClick={onClick}>Modifier</Pushable>
     </UpdateCategoryContainer>
   );
 }
 
-const TextInput = styled("input")`
-  width: 100%;
-  padding: 0.5em;
+const EnableCheckbox = styled(Checkbox)`
+  display: flex;
+  align-items: center;
+  margin-bottom: 1em;
+
+  [data-checkmark] {
+    margin-right: 0.25em;
+    border: 2px solid rgb(96, 96, 96);
+    border-radius: 0.25em;
+    padding: 0.25em;
+  }
+`;
+
+const Title = styled("h2")`
+  margin-bottom: 0.5em;
+  font-weight: var(--font-bold);
+  text-align: center;
+`;
+
+const TextInputStyled = styled(TextInput)`
+  > input {
+    padding: 0.5em;
+  }
+
   margin-bottom: 1em;
 `;
 
 const UpdateCategoryContainer = styled("form")`
   display: flex;
   flex-direction: column;
-`;
 
-const SaveButton = styled("button")`
-  text-transform: uppercase;
-
-  padding: 0.5em 1em;
-  width: 100%;
-
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
+  color: rgb(96, 96, 96);
 `;
 
 function UpdateIcon() {

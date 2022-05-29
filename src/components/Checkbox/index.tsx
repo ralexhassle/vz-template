@@ -50,7 +50,10 @@ function Checkbox({
   );
 }
 
-const Label = styled("label")``;
+const Label = styled("label")`
+  cursor: pointer;
+`;
+
 const CheckmarkContainer = styled("div")``;
 
 export default Checkbox;

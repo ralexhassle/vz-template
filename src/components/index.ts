@@ -5,3 +5,5 @@ export { default as Scenery } from "./Scenery";
 export { default as Wheel } from "./Wheel";
 export { default as Scratch } from "./Scratch";
 export { default as Dialog } from "./Dialog";
+export { default as Pushable } from "./Pushable";
+export { default as TextInput } from "./TextInput";

@@ -1,8 +1,8 @@
 import { useReducer, useState } from "react";
-import styled from "@emotion/styled";
 import { useUpdateAtom } from "jotai/utils";
+import styled from "@emotion/styled";
 
-import { Dialog } from "@app/components";
+import { Checkbox, Dialog, Pushable, TextInput } from "@app/components";
 import { updateProductAtom } from "../tree";
 
 interface UpdateProductDialogProps {
@@ -11,41 +11,58 @@ interface UpdateProductDialogProps {
 }
 function UpdateProductDialog({ product, toggle }: UpdateProductDialogProps) {
   const [label, set] = useState(product.label);
+  const [isEnabled, toggleEnabled] = useReducer((s) => !s, product.enabled);
   const update = useUpdateAtom(updateProductAtom);
 
   const onClick = () => {
-    update({ ...product, label });
+    update({ ...product, label, enabled: isEnabled });
     toggle();
   };
 
   return (
     <UpdateProductDialogContainer>
-      <TextInput value={label} onChange={(e) => set(e.target.value)} />
-      <SaveButton onClick={onClick}>SAVE</SaveButton>
+      <Title>Modifier le produit</Title>
+      <EnableCheckbox name="enabled" checked={isEnabled} toggle={toggleEnabled}>
+        Activer le produit
+      </EnableCheckbox>
+      <TextInputStyled value={label} onChange={(e) => set(e.target.value)} />
+      <Pushable onClick={onClick}>Modifier</Pushable>
     </UpdateProductDialogContainer>
   );
 }
 
-const TextInput = styled("input")`
-  width: 100%;
-  padding: 0.5em;
+const EnableCheckbox = styled(Checkbox)`
+  display: flex;
+  align-items: center;
+  margin-bottom: 1em;
+
+  [data-checkmark] {
+    margin-right: 0.25em;
+    border: 2px solid rgb(96, 96, 96);
+    border-radius: 0.25em;
+    padding: 0.25em;
+  }
+`;
+
+const Title = styled("h2")`
+  margin-bottom: 0.5em;
+  font-weight: var(--font-bold);
+  text-align: center;
+`;
+
+const TextInputStyled = styled(TextInput)`
+  > input {
+    padding: 0.5em;
+  }
+
   margin-bottom: 1em;
 `;
 
 const UpdateProductDialogContainer = styled("form")`
   display: flex;
   flex-direction: column;
-`;
 
-const SaveButton = styled("button")`
-  text-transform: uppercase;
-
-  padding: 0.5em 1em;
-  width: 100%;
-
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
+  color: rgb(96, 96, 96);
 `;
 
 function UpdateIcon() {

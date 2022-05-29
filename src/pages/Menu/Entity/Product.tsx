@@ -88,7 +88,7 @@ function ProductBody({ product }: ProductBodyProps) {
 
   if (isPriceSingle) {
     return (
-      <ProductBodyContainer>
+      <ProductBodyContainer data-product-enabled={product.enabled}>
         <SingleProductContainer>
           <ProductLabel>{product.label}</ProductLabel>
           <SingleProductPricesContainer>
@@ -103,7 +103,7 @@ function ProductBody({ product }: ProductBodyProps) {
   }
 
   return (
-    <ProductBodyContainer>
+    <ProductBodyContainer data-product-enabled={product.enabled}>
       <ProductPricesContainer>
         <ProductLabel>{product.label}</ProductLabel>
         {description && <ProductDescription>{description}</ProductDescription>}
@@ -142,6 +142,10 @@ const ProductBodyContainer = styled("div")`
   align-items: flex-start;
 
   flex: 1;
+
+  &[data-product-enabled="false"] {
+    opacity: 0.3;
+  }
 `;
 
 const ProductLabel = styled("span")`
@@ -229,6 +233,14 @@ function EditableProduct({ id, order, move }: EditableProductProps) {
 
   return (
     <Fragment>
+      {isSelected && (
+        <EditContainer>
+          <Create.Product {...{ categoryId }} />
+          <Update.Product {...{ product }} />
+          <Delete.Product {...{ product }} />
+        </EditContainer>
+      )}
+
       <ProductContainer
         ref={ref}
         data-handler-id={handlerId}
@@ -239,21 +251,13 @@ function EditableProduct({ id, order, move }: EditableProductProps) {
           <ProductBody {...{ product }} />
         </Select.Product>
       </ProductContainer>
-
-      {isSelected && (
-        <EditContainer>
-          <Create.Product {...{ categoryId }} />
-          <Update.Product {...{ product }} />
-          <Delete.Product {...{ product }} />
-        </EditContainer>
-      )}
     </Fragment>
   );
 }
 
 const EditContainer = styled("div")`
   display: flex;
-  padding: 0 0.5em;
+  // padding: 0 0.5em;
 
   > div:not(:last-child) {
     margin-right: 0.5em;

@@ -41,12 +41,11 @@ function Dialog({ message, children, dismiss }: Props) {
     return (
       <Portal id="dialog">
         <DialogContainer>
-          <AnimatedDialog style={{ scale }}>
-            {children}
-            <DismissButton onClick={dismiss}>
-              <CloseIcon />
-            </DismissButton>
-          </AnimatedDialog>
+          <DismissButton onClick={dismiss}>
+            <span>Fermer</span>
+            <CloseIcon />
+          </DismissButton>
+          <AnimatedDialog style={{ scale }}>{children}</AnimatedDialog>
         </DialogContainer>
       </Portal>
     );
@@ -55,9 +54,11 @@ function Dialog({ message, children, dismiss }: Props) {
   return (
     <Portal id="dialog">
       <DialogContainer>
+        <DismissButton onClick={dismiss}>
+          <span>Fermer</span>
+        </DismissButton>
         <AnimatedDialog style={{ scale }}>
           <p>{message}</p>
-          <DismissButton onClick={dismiss}>DISMISS</DismissButton>
         </AnimatedDialog>
       </DialogContainer>
     </Portal>
@@ -65,6 +66,9 @@ function Dialog({ message, children, dismiss }: Props) {
 }
 
 const Button = styled("button")`
+  display: flex;
+  align-items: center;
+
   text-transform: uppercase;
 
   padding: 0.5em 1em;
@@ -76,16 +80,16 @@ const Button = styled("button")`
 `;
 
 const DismissButton = styled(Button)`
-  position: absolute;
-  top: 0;
-  right: 0;
+  align-self: flex-end;
 
-  padding: 0.5em;
   width: auto;
+
+  color: white;
   background: none;
 
   > svg {
-    color: red;
+    margin-left: 0.25em;
+    color: white;
   }
 `;
 
@@ -111,11 +115,11 @@ const DialogContent = styled("div")`
 
   width: calc(100% - 2em);
   max-height: 80vh;
-  padding: 3em 1em 2em 1em;
+  padding: 2em 1em;
 
   overflow-y: auto;
   border-radius: 1em;
-  background: white;
+  background: rgb(240, 240, 240);
 
   user-select: none;
 

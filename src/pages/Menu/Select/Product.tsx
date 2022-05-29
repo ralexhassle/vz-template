@@ -1,8 +1,4 @@
 import styled from "@emotion/styled";
-import { useAtom } from "jotai";
-import { useCallback } from "react";
-
-import { selectProductAtomFamily } from "../tree";
 
 function Icon() {
   return (

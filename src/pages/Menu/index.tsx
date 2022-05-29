@@ -146,6 +146,7 @@ const EditableCheckbox = styled(Checkbox)`
     padding: 0.25em;
   }
 `;
+
 const Title = styled("h3")``;
 const Root = styled("div")``;
 

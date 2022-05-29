@@ -231,6 +231,13 @@ export function EditableCategory({ id, order, move }: EditableCategoryProps) {
 
   return (
     <Fragment>
+      {isSelected && (
+        <EditContainer>
+          <Create.Category {...{ parentId }} />
+          <Update.Category {...{ category }} />
+          <Delete.Category {...{ category }} />
+        </EditContainer>
+      )}
       <CategoryContainer
         ref={ref}
         data-handler-id={handlerId}
@@ -241,7 +248,10 @@ export function EditableCategory({ id, order, move }: EditableCategoryProps) {
         <CategorHeader>
           <Select.Category {...{ toggleSelect, isSelected }} />
           <ToggleButton onClick={onClick} type="button">
-            <Description>{category.description}</Description>
+            <Description>
+              <span>{category.description}</span>
+              {!category.enabled && <Unavalaible>Indisponible</Unavalaible>}
+            </Description>
             <ToggleIndicator isOpen={isOpen} />
           </ToggleButton>
         </CategorHeader>
@@ -254,20 +264,24 @@ export function EditableCategory({ id, order, move }: EditableCategoryProps) {
           </EntitiesContainer>
         )}
       </CategoryContainer>
-      {isSelected && (
-        <EditContainer>
-          <Create.Category {...{ parentId }} />
-          <Update.Category {...{ category }} />
-          <Delete.Category {...{ category }} />
-        </EditContainer>
-      )}
     </Fragment>
   );
 }
 
+const Unavalaible = styled("span")`
+  padding: 0.25em 1.5em;
+  margin: 0 0.5em;
+
+  vertical-align: middle;
+
+  background: #b1b1b1;
+  border-radius: 0.5em;
+  color: white;
+`;
+
 const EditContainer = styled("div")`
   display: flex;
-  padding: 0 0.5em;
+  // padding: 0 0.5em;
 
   > div:not(:last-child) {
     margin-right: 0.5em;
