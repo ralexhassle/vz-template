@@ -29,19 +29,56 @@ function DeleteProduct({ product }: Props) {
   };
 
   return (
-    <Button onClick={onClick} type="button">
-      <DeleteIcon />
-    </Button>
+    <Root>
+      <Button onClick={onClick} type="button">
+        <IconContainer>
+          <DeleteIcon />
+        </IconContainer>
+      </Button>
+    </Root>
   );
 }
 
+const Root = styled("div")`
+  display: flex;
+  flex-direction: column;
+  align-self: flex-start;
+
+  background: #ce6060;
+  border-radius: 0.5em;
+`;
+
+const IconContainer = styled("div")`
+  display: flex;
+  align-self: stretch;
+  align-items: center;
+
+  padding: 0.5em;
+
+  color: inherit;
+
+  border-radius: 0.25em;
+  box-shadow: 2px 2px 6px #ce3535, -2px -2px 6px #d28b8b;
+`;
+
 const Button = styled("button")`
-  padding: 0.25em 0.5em;
+  display: flex;
+  align-items: center;
+  align-self: flex-start;
+
+  padding: 0.5em;
+
+  color: white;
+  font-weight: var(--font-bold);
 
   border: none;
   background: none;
   cursor: pointer;
-  color: red;
+
+  > svg {
+    color: white
+    margin-right: 0.5em;
+  }
 `;
 
 export default DeleteProduct;

@@ -1,6 +1,6 @@
 import { DragSourceMonitor, useDrag, useDrop } from "react-dnd";
-import { useRef } from "react";
-import { atom, useAtomValue } from "jotai";
+import { Fragment, useCallback, useRef } from "react";
+import { atom, useAtom, useAtomValue } from "jotai";
 import { atomFamily } from "jotai/utils";
 import styled from "@emotion/styled";
 
@@ -10,8 +10,13 @@ import Update from "../Update";
 import Delete from "../Delete";
 import Like from "../Like";
 
-import { productsAtomFamily, levelAtomFamily } from "../tree";
+import {
+  productsAtomFamily,
+  levelAtomFamily,
+  selectProductAtomFamily,
+} from "../tree";
 import Select from "../Select";
+import Create from "../Create";
 
 const getFrenchPrice = (value: number) => {
   const PRICE_DECIMAL = 2;
@@ -174,7 +179,16 @@ function EditableProduct({ id, order, move }: EditableProductProps) {
   const ref = useRef<HTMLDivElement>(null);
 
   const product = useAtomValue(productsAtomFamily(id));
-  const level = useAtomValue(levelAtomFamily(product.categoryId));
+  const { categoryId } = product;
+  const level = useAtomValue(levelAtomFamily(categoryId));
+
+  const [{ isSelected }, set] = useAtom(
+    selectProductAtomFamily(product.productId)
+  );
+
+  const toggleSelect = useCallback(() => {
+    set((prev) => ({ ...prev, isSelected: !prev.isSelected }));
+  }, [set]);
 
   const [{ handlerId }, drop] = useDrop<
     APP.DragItem,
@@ -205,7 +219,7 @@ function EditableProduct({ id, order, move }: EditableProductProps) {
 
   const [{ isDragging }, drag] = useDrag({
     type: "product",
-    item: () => ({ id, order, type: "product", parentId: product.categoryId }),
+    item: () => ({ id, order, type: "product", parentId: categoryId }),
     collect: (monitor: DragSourceMonitor<APP.DragItem>) => ({
       isDragging: monitor.isDragging(),
     }),
@@ -214,18 +228,37 @@ function EditableProduct({ id, order, move }: EditableProductProps) {
   drag(drop(ref));
 
   return (
-    <ProductContainer
-      ref={ref}
-      data-handler-id={handlerId}
-      data-is-dragging={isDragging}
-      data-product-level={level}
-    >
-      <Select.Product {...{ product }}>
-        <ProductBody {...{ product }} />
-      </Select.Product>
-    </ProductContainer>
+    <Fragment>
+      <ProductContainer
+        ref={ref}
+        data-handler-id={handlerId}
+        data-is-dragging={isDragging}
+        data-product-level={level}
+      >
+        <Select.Product {...{ toggleSelect, isSelected }}>
+          <ProductBody {...{ product }} />
+        </Select.Product>
+      </ProductContainer>
+
+      {isSelected && (
+        <EditContainer>
+          <Create.Product {...{ categoryId }} />
+          <Update.Product {...{ product }} />
+          <Delete.Product {...{ product }} />
+        </EditContainer>
+      )}
+    </Fragment>
   );
 }
+
+const EditContainer = styled("div")`
+  display: flex;
+  padding: 0 0.5em;
+
+  > div:not(:last-child) {
+    margin-right: 0.5em;
+  }
+`;
 
 const ProductContainer = styled("div")`
   display: flex;

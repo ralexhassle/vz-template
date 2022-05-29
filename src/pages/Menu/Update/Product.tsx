@@ -1,4 +1,4 @@
-import { Fragment, useReducer, useState } from "react";
+import { useReducer, useState } from "react";
 import styled from "@emotion/styled";
 import { useUpdateAtom } from "jotai/utils";
 
@@ -70,27 +70,61 @@ function UpdateProduct({ product }: Props) {
   const [isDialogOpen, toggle] = useReducer((s) => !s, false);
 
   return (
-    <Fragment>
+    <Root>
       <Button onClick={toggle} type="button">
-        <UpdateIcon />
+        <IconContainer>
+          <UpdateIcon />
+        </IconContainer>
       </Button>
       {isDialogOpen && (
         <Dialog dismiss={toggle}>
           <UpdateProductDialog {...{ product, toggle }} />
         </Dialog>
       )}
-    </Fragment>
+    </Root>
   );
 }
 
+const Root = styled("div")`
+  display: flex;
+  flex-direction: column;
+  align-self: flex-start;
+
+  background: var(--wishlist-color);
+  border-radius: 0.5em;
+`;
+
+const IconContainer = styled("div")`
+  display: flex;
+  align-self: stretch;
+  align-items: center;
+
+  padding: 0.5em;
+
+  color: inherit;
+
+  border-radius: 0.25em;
+  box-shadow: 2px 2px 6px #34a1d1, -2px -2px 6px #83cff2;
+`;
+
 const Button = styled("button")`
-  padding: 0.25em 0.5em;
+  display: flex;
+  align-items: center;
+  align-self: flex-start;
+
+  padding: 0.5em;
+
+  color: white;
+  font-weight: var(--font-bold);
 
   border: none;
   background: none;
   cursor: pointer;
 
-  color: blue;
+  > svg {
+    color: white
+    margin-right: 0.5em;
+  }
 `;
 
 export default UpdateProduct;

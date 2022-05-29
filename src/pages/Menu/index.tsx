@@ -27,6 +27,9 @@ function Tree() {
 }
 
 const RootTreeContainer = styled("div")`
+  display: flex;
+  flex-direction: column;
+
   width: 100%;
 
   --wishlist-color: #41b9ef;
@@ -41,7 +44,7 @@ const RootTreeContainer = styled("div")`
   [data-category-level="0"] {
     color: var(--wishlist-color);
 
-    --create-category-icon: var(--wishlist-color);
+    --create-category-icon: rgb(228, 224, 225);
     --create-category-color: var(--wishlist-color);
 
     --create-product-icon: var(--wishlist-color);
@@ -52,7 +55,7 @@ const RootTreeContainer = styled("div")`
     background: #606060;
     color: white;
 
-    --create-category-icon: var(--wishlist-color);
+    --create-category-icon: rgb(228, 224, 225);
     --create-category-color: white;
 
     --create-product-icon: var(--wishlist-color);
@@ -72,7 +75,7 @@ const RootTreeContainer = styled("div")`
     background: #f0f0f0;
     color: rgb(96, 96, 96);
 
-    --create-category-icon: var(--wishlist-color);
+    --create-category-icon: rgb(228, 224, 225);
     --create-category-color: var(--wishlist-color);
 
     --create-product-icon: var(--wishlist-color);

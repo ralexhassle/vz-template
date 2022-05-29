@@ -36,7 +36,7 @@ const styles = css`
   }
 
   #dialog {
-    font-size: calc(10px + 2vmin);
+    font-size: calc(10px + 1vmin);
   }
 `;
 

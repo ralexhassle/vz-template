@@ -23,6 +23,7 @@ import {
   childrenAtomFamily,
   levelAtomFamily,
   isEditableAtom,
+  selectCategoryAtomFamily,
 } from "../tree";
 import Select from "../Select";
 
@@ -71,19 +72,31 @@ function EditableEntities({ parentId, entities }: EditableEntitiesProps) {
   );
 
   if (isEmpty(children)) {
+    return <EmptyEditableEntity {...{ parentId }} />;
+  }
+
+  return <Fragment>{children.map(renderChild)}</Fragment>;
+}
+
+interface EmptyEditableEntityProps {
+  parentId: number | null;
+}
+function EmptyEditableEntity({ parentId }: EmptyEditableEntityProps) {
+  const level = useAtomValue(levelAtomFamily(parentId));
+  const isMaximumLevel = level + 1 > 3;
+
+  if (isMaximumLevel) {
     return (
       <Fragment>
-        {/* <Create.Category parentId={parentId} />
-        {parentId && <Create.Product categoryId={parentId} />} */}
+        {parentId && <Create.Product categoryId={parentId} />}
       </Fragment>
     );
   }
 
   return (
     <Fragment>
-      {/* <Create.Category parentId={parentId} />
-      {parentId && <Create.Product categoryId={parentId} />} */}
-      {children.map(renderChild)}
+      <Create.Category parentId={parentId} />
+      {parentId && <Create.Product categoryId={parentId} />}
     </Fragment>
   );
 }
@@ -161,10 +174,19 @@ export function EditableCategory({ id, order, move }: EditableCategoryProps) {
   const ref = useRef<HTMLDivElement>(null);
 
   const category = useAtomValue(categoriesAtomFamily(id));
+  const { parentId } = category;
   const level = useAtomValue(levelAtomFamily(category.categoryId));
 
   const [{ isOpen }, toggle] = useAtom(toggleAtomFamily(id));
   const children = useAtomValue(selectChildrenAtomFamily(id));
+
+  const [{ isSelected }, set] = useAtom(
+    selectCategoryAtomFamily(category.categoryId)
+  );
+
+  const toggleSelect = useCallback(() => {
+    set((prev) => ({ ...prev, isSelected: !prev.isSelected }));
+  }, [set]);
 
   const onClick = useCallback(() => {
     toggle((prev) => ({ ...prev, isOpen: !isOpen }));
@@ -208,32 +230,49 @@ export function EditableCategory({ id, order, move }: EditableCategoryProps) {
   drag(drop(ref));
 
   return (
-    <CategoryContainer
-      ref={ref}
-      data-handler-id={handlerId}
-      data-is-dragging={isDragging}
-      data-category-level={level}
-      data-category
-    >
-      <CategorHeader>
-        <Select.Category {...{ category }}>
+    <Fragment>
+      <CategoryContainer
+        ref={ref}
+        data-handler-id={handlerId}
+        data-is-dragging={isDragging}
+        data-category-level={level}
+        data-category
+      >
+        <CategorHeader>
+          <Select.Category {...{ toggleSelect, isSelected }} />
           <ToggleButton onClick={onClick} type="button">
             <Description>{category.description}</Description>
             <ToggleIndicator isOpen={isOpen} />
           </ToggleButton>
-        </Select.Category>
-      </CategorHeader>
-      {isOpen && (
-        <EntitiesContainer>
-          <EditableEntities
-            entities={children}
-            parentId={category.categoryId}
-          />
-        </EntitiesContainer>
+        </CategorHeader>
+        {isOpen && (
+          <EntitiesContainer>
+            <EditableEntities
+              entities={children}
+              parentId={category.categoryId}
+            />
+          </EntitiesContainer>
+        )}
+      </CategoryContainer>
+      {isSelected && (
+        <EditContainer>
+          <Create.Category {...{ parentId }} />
+          <Update.Category {...{ category }} />
+          <Delete.Category {...{ category }} />
+        </EditContainer>
       )}
-    </CategoryContainer>
+    </Fragment>
   );
 }
+
+const EditContainer = styled("div")`
+  display: flex;
+  padding: 0 0.5em;
+
+  > div:not(:last-child) {
+    margin-right: 0.5em;
+  }
+`;
 
 const ToggleButton = styled("button")`
   display: flex;

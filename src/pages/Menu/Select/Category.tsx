@@ -1,8 +1,4 @@
 import styled from "@emotion/styled";
-import { useAtom } from "jotai";
-import { Fragment, useCallback } from "react";
-
-import { selectCategoryAtomFamily } from "../tree";
 
 function Icon() {
   return (
@@ -11,8 +7,8 @@ function Icon() {
       fill="currentColor"
       strokeWidth="0"
       viewBox="0 0 512 512"
-      height="0.75em"
-      width="0.75em"
+      height="1em"
+      width="1em"
     >
       <path d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8z" />
     </svg>
@@ -20,27 +16,16 @@ function Icon() {
 }
 
 interface Props {
-  category: API.Category;
-  children: React.ReactNode;
+  isSelected: boolean;
+  toggleSelect: VoidFunction;
 }
-function SelectCategory({ category, children }: Props) {
-  const [{ isSelected }, set] = useAtom(
-    selectCategoryAtomFamily(category.categoryId)
-  );
-
-  const onClick = useCallback(() => {
-    set((prev) => ({ ...prev, isSelected: !prev.isSelected }));
-  }, [set]);
-
+function SelectCategory({ isSelected, toggleSelect }: Props) {
   return (
-    <Fragment>
-      <Button onClick={onClick}>
-        <SelectIconContainer data-is-selected={isSelected}>
-          <Icon />
-        </SelectIconContainer>
-      </Button>
-      {children}
-    </Fragment>
+    <Button onClick={toggleSelect}>
+      <SelectIconContainer data-is-selected={isSelected}>
+        <Icon />
+      </SelectIconContainer>
+    </Button>
   );
 }
 

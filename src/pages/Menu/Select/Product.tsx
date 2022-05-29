@@ -11,8 +11,8 @@ function Icon() {
       fill="currentColor"
       strokeWidth="0"
       viewBox="0 0 512 512"
-      height="0.75em"
-      width="0.75em"
+      height="1em"
+      width="1em"
     >
       <path d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8z" />
     </svg>
@@ -20,20 +20,13 @@ function Icon() {
 }
 
 interface Props {
-  product: API.Product;
+  isSelected: boolean;
+  toggleSelect: VoidFunction;
   children: React.ReactNode;
 }
-function SelectProduct({ product, children }: Props) {
-  const [{ isSelected }, set] = useAtom(
-    selectProductAtomFamily(product.productId)
-  );
-
-  const onClick = useCallback(() => {
-    set((prev) => ({ ...prev, isSelected: !prev.isSelected }));
-  }, [set]);
-
+function SelectProduct({ toggleSelect, isSelected, children }: Props) {
   return (
-    <Button onClick={onClick}>
+    <Button onClick={toggleSelect}>
       <SelectIconContainer data-is-selected={isSelected}>
         <Icon />
       </SelectIconContainer>

@@ -1,5 +1,5 @@
-import { FormEvent, Fragment, useEffect, useReducer, useState } from "react";
-import { atom, useAtom, useAtomValue } from "jotai";
+import { FormEvent, useEffect, useReducer, useState } from "react";
+import { atom, useAtom } from "jotai";
 import { useUpdateAtom } from "jotai/utils";
 import styled from "@emotion/styled";
 
@@ -109,35 +109,67 @@ function CreateCategory({ parentId }: Props) {
   const [isOpen, toggleDialog] = useReducer((s) => !s, false);
 
   return (
-    <Fragment>
+    <Root>
       <Button onClick={toggleDialog} type="button">
-        <AddIcon />
-        <span>Category</span>
+        <IconContainer>
+          <AddIcon />
+        </IconContainer>
+        <ButtonLabel>Catégorie</ButtonLabel>
       </Button>
       {isOpen && (
         <Dialog dismiss={toggleDialog}>
           <AddCategoryDialog {...{ toggleDialog, parentId }} />
         </Dialog>
       )}
-    </Fragment>
+    </Root>
   );
 }
+
+const Root = styled("div")`
+  display: flex;
+  flex-direction: column;
+  align-self: flex-start;
+
+  // background: rgb(151, 198, 135);
+  background: var(--wishlist-color);
+  border-radius: 0.5em;
+`;
+
+const ButtonLabel = styled("span")`
+  padding: 0.25em;
+  margin-left: 0.25em;
+`;
+
+const IconContainer = styled("div")`
+  display: flex;
+  align-self: stretch;
+  align-items: center;
+
+  padding: 0.5em;
+
+  color: inherit;
+
+  border-radius: 0.25em;
+  box-shadow: 2px 2px 6px #34a1d1, -2px -2px 6px #83cff2;
+  // box-shadow: 2px 2px 6px rgb(110 185 85), -2px -2px 6px rgb(189 220 179);
+`;
 
 const Button = styled("button")`
   display: flex;
   align-items: center;
   align-self: flex-start;
 
-  padding: 0;
+  padding: 0.5em;
 
-  color: var(--create-category-color);
+  color: white;
+  font-weight: var(--font-bold);
 
   border: none;
   background: none;
   cursor: pointer;
 
   > svg {
-    color: var(--create-category-icon);
+    color: white
     margin-right: 0.5em;
   }
 `;
