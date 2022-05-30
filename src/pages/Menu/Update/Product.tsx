@@ -1,4 +1,4 @@
-import { useReducer, useState } from "react";
+import { FormEvent, useReducer, useState } from "react";
 import { useUpdateAtom } from "jotai/utils";
 import styled from "@emotion/styled";
 
@@ -14,19 +14,20 @@ function UpdateProductDialog({ product, toggle }: UpdateProductDialogProps) {
   const [isEnabled, toggleEnabled] = useReducer((s) => !s, product.enabled);
   const update = useUpdateAtom(updateProductAtom);
 
-  const onClick = () => {
+  const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
     update({ ...product, label, enabled: isEnabled });
     toggle();
   };
 
   return (
-    <UpdateProductDialogContainer>
+    <UpdateProductDialogContainer onSubmit={onSubmit}>
       <Title>Modifier le produit</Title>
       <EnableCheckbox name="enabled" checked={isEnabled} toggle={toggleEnabled}>
         Activer le produit
       </EnableCheckbox>
       <TextInputStyled value={label} onChange={(e) => set(e.target.value)} />
-      <Pushable onClick={onClick}>Modifier</Pushable>
+      <Pushable>Modifier</Pushable>
     </UpdateProductDialogContainer>
   );
 }

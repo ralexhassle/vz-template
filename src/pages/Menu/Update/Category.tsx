@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
-import { useCallback, useReducer, useState } from "react";
+import { FormEvent, useReducer, useState } from "react";
 import { useUpdateAtom } from "jotai/utils";
 import styled from "@emotion/styled";
 
@@ -16,13 +16,14 @@ function UpdateCategoryDialog({ category, toggle }: UpdateCategoryDialogProps) {
   const [isEnabled, toggleEnabled] = useReducer((s) => !s, category.enabled);
   const update = useUpdateAtom(updateCategoryAtom);
 
-  const onClick = () => {
+  const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
     update({ ...category, description, enabled: isEnabled });
     toggle();
   };
 
   return (
-    <UpdateCategoryContainer>
+    <UpdateCategoryContainer onSubmit={onSubmit}>
       <Title>Modifier une catégorie</Title>
       <EnableCheckbox name="enabled" checked={isEnabled} toggle={toggleEnabled}>
         Activer la catégorie
@@ -31,7 +32,7 @@ function UpdateCategoryDialog({ category, toggle }: UpdateCategoryDialogProps) {
         value={description}
         onChange={(e) => set(e.target.value)}
       />
-      <Pushable onClick={onClick}>Modifier</Pushable>
+      <Pushable>Modifier</Pushable>
     </UpdateCategoryContainer>
   );
 }

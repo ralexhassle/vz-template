@@ -64,13 +64,13 @@ function AddProductDialog({ toggleDialog, categoryId }: AddProductProps) {
   };
 
   return (
-    <Spinner isLoading={status === STATUS.PENDING} onSuccess={toggleDialog}>
-      <EditProductContainer onSubmit={onSubmit}>
+    <EditProductContainer onSubmit={onSubmit}>
+      <Spinner isLoading={status === STATUS.PENDING} onSuccess={toggleDialog}>
         <Title>Créer un produit</Title>
         <TextInputStyled value={label} onChange={(e) => set(e.target.value)} />
         <Pushable disabled={status === STATUS.PENDING}>Ajouter</Pushable>
-      </EditProductContainer>
-    </Spinner>
+      </Spinner>
+    </EditProductContainer>
   );
 }
 
@@ -93,17 +93,10 @@ const EditProductContainer = styled("form")`
   flex-direction: column;
 
   color: rgb(96, 96, 96);
-`;
 
-const SaveButton = styled("button")`
-  text-transform: uppercase;
-
-  padding: 0.5em 1em;
-  width: 100%;
-
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
+  [data-spinner] {
+    align-self: center;
+  }
 `;
 
 function AddIcon() {

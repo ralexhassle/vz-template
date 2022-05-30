@@ -56,7 +56,7 @@ function AddCategoryDialog({ toggleDialog, parentId }: AddProductProps) {
   };
 
   return (
-    <EditProductContainer onSubmit={onSubmit}>
+    <EditCategoryContainer onSubmit={onSubmit}>
       <Spinner isLoading={status === STATUS.PENDING} onSuccess={toggleDialog}>
         <Title>Créer une catégorie</Title>
         <TextInputStyled
@@ -65,7 +65,7 @@ function AddCategoryDialog({ toggleDialog, parentId }: AddProductProps) {
         />
         <Pushable disabled={status === STATUS.PENDING}>Ajouter</Pushable>
       </Spinner>
-    </EditProductContainer>
+    </EditCategoryContainer>
   );
 }
 
@@ -83,11 +83,15 @@ const TextInputStyled = styled(TextInput)`
   margin-bottom: 1em;
 `;
 
-const EditProductContainer = styled("form")`
+const EditCategoryContainer = styled("form")`
   display: flex;
   flex-direction: column;
 
   color: rgb(96, 96, 96);
+
+  [data-spinner] {
+    align-self: center;
+  }
 `;
 
 function AddIcon() {
