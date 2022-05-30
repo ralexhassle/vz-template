@@ -38,6 +38,10 @@ const styles = css`
   #dialog {
     font-size: calc(10px + 2vmin);
   }
+
+  #action {
+    font-size: calc(10px + 2vmin);
+  }
 `;
 
 const root = createRoot(document.getElementById("root") as HTMLElement);

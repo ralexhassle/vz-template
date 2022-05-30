@@ -267,3 +267,41 @@ export const toggleLikeProductAtom = atom(
     });
   }
 );
+
+export const selectedProductsAtomFamily = atomFamily(
+  (product: API.Product) =>
+    atom((get) => {
+      const parent: APP.EntityType = get(entitiesAtom)[product.categoryId];
+
+      const selectedProducts = parent.children
+        .filter(({ id }) => get(selectProductAtomFamily(id)).isSelected)
+        .map(({ id }) => get(productsAtom)[id]);
+
+      return { isMultiSelect: selectedProducts.length >= 2, selectedProducts };
+    }),
+  (a, b) => a.categoryId === b.categoryId
+);
+
+export const toggleSelectCategoryAtom = atom(
+  null,
+  (get, set, { parentId, categoryId }: API.Category) => {
+    const id = parentId === null ? Infinity : parentId;
+    const parent: APP.EntityType = get(entitiesAtom)[id];
+
+    if (!parent) return;
+
+    parent.children.forEach((sibling) => {
+      if (sibling.id === categoryId) {
+        set(selectCategoryAtomFamily(sibling.id), (prev) => ({
+          ...prev,
+          isSelected: !prev.isSelected,
+        }));
+      } else {
+        set(selectCategoryAtomFamily(sibling.id), (prev) => ({
+          ...prev,
+          isSelected: false,
+        }));
+      }
+    });
+  }
+);

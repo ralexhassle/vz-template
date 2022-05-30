@@ -7,7 +7,7 @@ function Icon() {
       fill="currentColor"
       strokeWidth="0"
       viewBox="0 0 512 512"
-      height="1em"
+      height="0.75em"
       width="1em"
     >
       <path d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8z" />
@@ -22,7 +22,7 @@ interface Props {
 }
 function SelectProduct({ toggleSelect, isSelected, children }: Props) {
   return (
-    <Button onClick={toggleSelect}>
+    <Button onClick={toggleSelect} data-is-selected={isSelected}>
       <SelectIconContainer data-is-selected={isSelected}>
         <Icon />
       </SelectIconContainer>
@@ -61,6 +61,10 @@ const Button = styled("button")`
   background: none;
   border: none;
   cursor: pointer;
+
+  &[data-is-selected="true"] {
+    cursor: grab;
+  }
 `;
 
 export default SelectProduct;

@@ -1,4 +1,8 @@
+import { useCallback } from "react";
+import { useUpdateAtom } from "jotai/utils";
 import styled from "@emotion/styled";
+
+import { toggleSelectCategoryAtom } from "../tree";
 
 function Icon() {
   return (
@@ -7,7 +11,7 @@ function Icon() {
       fill="currentColor"
       strokeWidth="0"
       viewBox="0 0 512 512"
-      height="1em"
+      height="0.75em"
       width="1em"
     >
       <path d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8z" />
@@ -17,9 +21,15 @@ function Icon() {
 
 interface Props {
   isSelected: boolean;
-  toggleSelect: VoidFunction;
+  category: API.Category;
 }
-function SelectCategory({ isSelected, toggleSelect }: Props) {
+function SelectCategory({ isSelected, category }: Props) {
+  const toggleSelectCategory = useUpdateAtom(toggleSelectCategoryAtom);
+
+  const toggleSelect = useCallback(() => {
+    toggleSelectCategory(category);
+  }, [toggleSelectCategory, category]);
+
   return (
     <Button onClick={toggleSelect}>
       <SelectIconContainer data-is-selected={isSelected}>

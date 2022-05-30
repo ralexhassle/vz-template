@@ -11,6 +11,7 @@ import { isEmpty } from "@app/utils";
 import Update from "../Update";
 import Delete from "../Delete";
 import Create from "../Create";
+import Select from "../Select";
 import Like from "../Like";
 
 import Product from "./Product";
@@ -25,7 +26,6 @@ import {
   isEditableAtom,
   selectCategoryAtomFamily,
 } from "../tree";
-import Select from "../Select";
 
 const ROOT_ENTITY_ID = Infinity;
 export function RootCategory() {
@@ -180,17 +180,9 @@ export function EditableCategory({ id, order, move }: EditableCategoryProps) {
   const [{ isOpen }, toggle] = useAtom(toggleAtomFamily(id));
   const children = useAtomValue(selectChildrenAtomFamily(id));
 
-  const [{ isSelected }, set] = useAtom(
+  const [{ isSelected }] = useAtom(
     selectCategoryAtomFamily(category.categoryId)
   );
-
-  const toggleSelect = useCallback(() => {
-    set((prev) => ({ ...prev, isSelected: !prev.isSelected }));
-  }, [set]);
-
-  const onClick = useCallback(() => {
-    toggle((prev) => ({ ...prev, isOpen: !isOpen }));
-  }, [isOpen, toggle]);
 
   const [{ handlerId }, drop] = useDrop<
     APP.DragItem,
@@ -221,17 +213,22 @@ export function EditableCategory({ id, order, move }: EditableCategoryProps) {
 
   const [{ isDragging }, drag] = useDrag({
     type: String(category.parentId),
+    canDrag: isSelected && !isOpen,
     item: () => ({ id, order, type: "category" }),
     collect: (monitor: DragSourceMonitor<APP.DragItem>) => ({
       isDragging: monitor.isDragging(),
     }),
   });
 
+  const toggleOpen = useCallback(() => {
+    toggle((prev) => ({ ...prev, isOpen: !isOpen }));
+  }, [isOpen, toggle]);
+
   drag(drop(ref));
 
   return (
     <Fragment>
-      {isSelected && (
+      {isSelected && !isOpen && (
         <EditContainer>
           <Create.Category {...{ parentId }} />
           <Update.Category {...{ category }} />
@@ -246,8 +243,8 @@ export function EditableCategory({ id, order, move }: EditableCategoryProps) {
         data-category
       >
         <CategorHeader>
-          <Select.Category {...{ toggleSelect, isSelected }} />
-          <ToggleButton onClick={onClick} type="button">
+          {!isOpen && <Select.Category {...{ category, isSelected }} />}
+          <ToggleButton onClick={toggleOpen} type="button">
             <Description>
               <span>{category.description}</span>
               {!category.enabled && <Unavalaible>Indisponible</Unavalaible>}

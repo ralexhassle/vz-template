@@ -1,7 +1,7 @@
 import { DragSourceMonitor, useDrag, useDrop } from "react-dnd";
 import { Fragment, useCallback, useRef } from "react";
 import { atom, useAtom, useAtomValue } from "jotai";
-import { atomFamily } from "jotai/utils";
+import { atomFamily, useUpdateAtom } from "jotai/utils";
 import styled from "@emotion/styled";
 
 import type { Identifier, XYCoord } from "dnd-core";
@@ -9,14 +9,17 @@ import type { Identifier, XYCoord } from "dnd-core";
 import Update from "../Update";
 import Delete from "../Delete";
 import Like from "../Like";
+import Select from "../Select";
+import Create from "../Create";
+import ActionButton from "./ActionButton";
 
 import {
   productsAtomFamily,
   levelAtomFamily,
   selectProductAtomFamily,
+  selectedProductsAtomFamily,
+  deleteProductAtom,
 } from "../tree";
-import Select from "../Select";
-import Create from "../Create";
 
 const getFrenchPrice = (value: number) => {
   const PRICE_DECIMAL = 2;
@@ -174,6 +177,41 @@ function Product({ id }: ProductProps) {
   );
 }
 
+interface EditActionsProps {
+  product: API.Product;
+}
+function EditActions({ product }: EditActionsProps) {
+  const deleteProduct = useUpdateAtom(deleteProductAtom);
+  const { isMultiSelect, selectedProducts } = useAtomValue(
+    selectedProductsAtomFamily(product)
+  );
+
+  const deleteSelectedProducts = useCallback(() => {
+    selectedProducts.forEach((selectedProduct) => {
+      deleteProduct(selectedProduct);
+    });
+  }, [selectedProducts, deleteProduct]);
+
+  if (isMultiSelect) return <ActionButton onClick={deleteSelectedProducts} />;
+
+  return (
+    <EditContainer>
+      <Create.Product {...{ categoryId: product.categoryId }} />
+      <Update.Product {...{ product }} />
+      <Delete.Product {...{ product }} />
+    </EditContainer>
+  );
+}
+
+const EditContainer = styled("div")`
+  display: flex;
+  // padding: 0 0.5em;
+
+  > div:not(:last-child) {
+    margin-right: 0.5em;
+  }
+`;
+
 interface EditableProductProps {
   id: API.Product["productId"];
   order: number;
@@ -223,6 +261,7 @@ function EditableProduct({ id, order, move }: EditableProductProps) {
 
   const [{ isDragging }, drag] = useDrag({
     type: "product",
+    canDrag: isSelected,
     item: () => ({ id, order, type: "product", parentId: categoryId }),
     collect: (monitor: DragSourceMonitor<APP.DragItem>) => ({
       isDragging: monitor.isDragging(),
@@ -233,13 +272,7 @@ function EditableProduct({ id, order, move }: EditableProductProps) {
 
   return (
     <Fragment>
-      {isSelected && (
-        <EditContainer>
-          <Create.Product {...{ categoryId }} />
-          <Update.Product {...{ product }} />
-          <Delete.Product {...{ product }} />
-        </EditContainer>
-      )}
+      {isSelected && <EditActions {...{ product }} />}
 
       <ProductContainer
         ref={ref}
@@ -254,15 +287,6 @@ function EditableProduct({ id, order, move }: EditableProductProps) {
     </Fragment>
   );
 }
-
-const EditContainer = styled("div")`
-  display: flex;
-  // padding: 0 0.5em;
-
-  > div:not(:last-child) {
-    margin-right: 0.5em;
-  }
-`;
 
 const ProductContainer = styled("div")`
   display: flex;
