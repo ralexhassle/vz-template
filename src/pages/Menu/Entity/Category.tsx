@@ -47,7 +47,7 @@ function Category({ id, children }: CategoryProps) {
           <ToggleIndicator isOpen={isOpen} />
         </ToggleButton>
       </CategorHeader>
-      {isOpen && children}
+      {isOpen && <Children>{children}</Children>}
     </CategoryContainer>
   );
 }
@@ -145,11 +145,25 @@ function EditableCategory(props: EditableCategoryProps) {
             <ToggleIndicator isOpen={isOpen} />
           </ToggleButton>
         </CategorHeader>
-        {isOpen && children}
+        {isOpen && <Children>{children}</Children>}
       </CategoryContainer>
     </Fragment>
   );
 }
+
+const Children = styled("div")`
+  display: flex;
+  flex-direction: column;
+
+  padding-top: 0;
+  padding-right: 0.5em;
+  padding-left: 0.5em;
+  padding-bottom: 0.5em;
+
+  > *:not(:last-child) {
+    margin-bottom: 0.5em;
+  }
+`;
 
 const Unavalaible = styled("span")`
   padding: 0.25em 1.5em;

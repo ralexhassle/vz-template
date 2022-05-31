@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
 import { Fragment, useCallback } from "react";
 import { useAtomValue, useAtom } from "jotai";
-import styled from "@emotion/styled";
 
 import { isEmpty } from "@app/utils";
 
@@ -90,9 +89,7 @@ function EditableEntity({ child, order, move }: EditableEntityProps) {
   if (type === "category") {
     return (
       <Category.Edit key={id} {...{ id, order, move }}>
-        <EntitiesContainer>
-          <EditableEntities parentId={id} />
-        </EntitiesContainer>
+        <EditableEntities parentId={id} />
       </Category.Edit>
     );
   }
@@ -164,29 +161,13 @@ export function Entity({ child, order }: EntityProps) {
   if (type === "category") {
     return (
       <Category.View key={id} {...{ id, order }}>
-        <EntitiesContainer>
-          <Entities parentId={id} />
-        </EntitiesContainer>
+        <Entities parentId={id} />
       </Category.View>
     );
   }
 
   return <Product.View key={id} {...{ id, order }} />;
 }
-
-const EntitiesContainer = styled("div")`
-  display: flex;
-  flex-direction: column;
-
-  padding-top: 0;
-  padding-right: 0.5em;
-  padding-left: 0.5em;
-  padding-bottom: 0.5em;
-
-  > *:not(:last-child) {
-    margin-bottom: 0.5em;
-  }
-`;
 
 export default {
   Edit: EditableEntities,

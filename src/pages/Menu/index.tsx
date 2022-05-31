@@ -24,7 +24,7 @@ function MenuTree({ isEditable }: MenuTreeProps) {
 
   return (
     <RootContainer>
-      <RootEntities {...{ isEditable }} />;
+      <RootEntities {...{ isEditable }} />
     </RootContainer>
   );
 }
