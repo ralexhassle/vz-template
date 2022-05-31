@@ -52,6 +52,19 @@ function Category({ id, children }: CategoryProps) {
   );
 }
 
+interface EditActionsProps {
+  category: API.Category;
+}
+function EditActions({ category }: EditActionsProps) {
+  return (
+    <EditContainer>
+      <Create.Category {...{ parentId: category.parentId }} />
+      <Update.Category {...{ category }} />
+      <Delete.Category {...{ category }} />
+    </EditContainer>
+  );
+}
+
 interface EditableCategoryProps {
   id: API.Category["categoryId"];
   order: number;
@@ -68,11 +81,8 @@ function EditableCategory(props: EditableCategoryProps) {
   const ref = useRef<HTMLDivElement>(null);
 
   const category = useAtomValue(categoriesAtomFamily(id));
-  const { parentId } = category;
   const level = useAtomValue(levelAtomFamily(category.categoryId));
-
   const [{ isOpen }, toggle] = useAtom(toggleAtomFamily(id));
-
   const [{ isSelected }] = useAtom(
     selectCategoryAtomFamily(category.categoryId)
   );
@@ -121,13 +131,7 @@ function EditableCategory(props: EditableCategoryProps) {
 
   return (
     <Fragment>
-      {isSelected && (
-        <EditContainer>
-          <Create.Category {...{ parentId }} />
-          <Update.Category {...{ category }} />
-          <Delete.Category {...{ category }} />
-        </EditContainer>
-      )}
+      {isSelected && <EditActions {...{ category }} />}
       <CategoryContainer
         ref={ref}
         data-handler-id={handlerId}

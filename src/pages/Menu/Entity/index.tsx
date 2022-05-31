@@ -5,7 +5,6 @@ import { useAtomValue, useAtom } from "jotai";
 import { isEmpty } from "@app/utils";
 
 import Create from "../Create";
-
 import Product from "./Product";
 import Category from "./Category";
 
