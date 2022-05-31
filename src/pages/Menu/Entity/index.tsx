@@ -14,19 +14,20 @@ import {
   selectChildrenAtomFamily,
   childrenAtomFamily,
   levelAtomFamily,
-  isEditableAtom,
 } from "../tree";
 
 const ROOT_ENTITY_ID = Infinity;
+
+interface RootEntitiesProps {
+  isEditable: boolean;
+}
 /**
  * Entry point of the tree. This component is responsible for rendering the
  * root node of the tree. The root node is a special case because it has no
  * parent. Hence we create a virtual parent node with an id of `Infinity`.
  * `Infinity` is of type number as well as entity id.
  */
-export function RootCategory() {
-  const isEditable = useAtomValue(isEditableAtom);
-
+export function RootEntities({ isEditable }: RootEntitiesProps) {
   if (isEditable) {
     return <EditableEntities parentId={ROOT_ENTITY_ID} />;
   }
@@ -186,3 +187,8 @@ const EntitiesContainer = styled("div")`
     margin-bottom: 0.5em;
   }
 `;
+
+export default {
+  Edit: EditableEntities,
+  View: Entities,
+};

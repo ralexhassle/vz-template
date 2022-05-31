@@ -8,10 +8,13 @@ import { DndProvider } from "react-dnd";
 
 import { Checkbox } from "@app/components";
 
-import { RootCategory } from "./Entity";
+import { RootEntities } from "./Entity";
 import { createEntitiesAtom, isEditableAtom, menuAtom } from "./tree";
 
-function Tree() {
+interface MenuTreeProps {
+  isEditable: boolean;
+}
+function MenuTree({ isEditable }: MenuTreeProps) {
   const [menu] = useAtom(menuAtom);
   const createEntities = useUpdateAtom(createEntitiesAtom);
 
@@ -20,13 +23,13 @@ function Tree() {
   }, [menu, createEntities]);
 
   return (
-    <RootTreeContainer>
-      <RootCategory />
-    </RootTreeContainer>
+    <RootContainer>
+      <RootEntities {...{ isEditable }} />;
+    </RootContainer>
   );
 }
 
-const RootTreeContainer = styled("div")`
+const RootContainer = styled("div")`
   display: flex;
   flex-direction: column;
 
@@ -128,7 +131,7 @@ function Menu() {
       </EditableCheckbox>
       <Suspense fallback="...loading">
         <DndProvider backend={TouchBackend} options={options}>
-          <Tree />
+          <MenuTree {...{ isEditable }} />
         </DndProvider>
       </Suspense>
     </Root>

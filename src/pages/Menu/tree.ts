@@ -24,10 +24,15 @@ export const entitiesAtom = atom<Collection<APP.EntityType>>({});
 export const createEntitiesAtom = atom(null, (_get, set, menu: API.Menu) => {
   const { products, categories } = menu;
 
+  // Preparing key value pairs for each entity, we want O(1) complexity
+  // when looking for entity by its id.
   const productMap = new Map(products.map((p) => [p.productId, p]));
   const categoryMap = new Map(categories.map((c) => [c.categoryId, c]));
+
+  // Key value pairs for each entity id and its direct children
   const entities = new Map<number, APP.EntityType>();
 
+  // Keeping track of the entity type...
   const categoryArray = menu.categories.map((category) => ({
     id: category.categoryId,
     parentId: category.parentId,
@@ -42,8 +47,11 @@ export const createEntitiesAtom = atom(null, (_get, set, menu: API.Menu) => {
     value: product,
   }));
 
+  // ... when looking in the whole entities' array
   const entitiyArray = [...categoryArray, ...productArray];
 
+  // setting a virtual root category entity. Its parentId is set
+  // to Infinity by design
   entities.set(Infinity, {
     type: "category",
     id: Infinity,
@@ -57,6 +65,7 @@ export const createEntitiesAtom = atom(null, (_get, set, menu: API.Menu) => {
       })),
   });
 
+  // For each category setting all its children in the entities map
   categoryArray.forEach((category) => {
     const children = entitiyArray
       .filter((item) => item.parentId === category.id)
@@ -74,6 +83,8 @@ export const createEntitiesAtom = atom(null, (_get, set, menu: API.Menu) => {
     });
   });
 
+  // Creating a collection for categories, products and entities
+  // We want to benefit from O(1) complexity when looking for an entity
   set(entitiesAtom, Object.fromEntries(entities));
   set(categoriesAtom, Object.fromEntries(categoryMap));
   set(productsAtom, Object.fromEntries(productMap));
