@@ -1,5 +1,6 @@
 import styled from "@emotion/styled";
 import { useUpdateAtom } from "jotai/utils";
+import { useCallback } from "react";
 
 import { deleteProductAtom } from "../tree";
 
@@ -24,9 +25,9 @@ interface Props {
 function DeleteProduct({ product }: Props) {
   const deleteProduct = useUpdateAtom(deleteProductAtom);
 
-  const onClick = () => {
+  const onClick = useCallback(() => {
     deleteProduct(product);
-  };
+  }, [product, deleteProduct]);
 
   return (
     <Root>

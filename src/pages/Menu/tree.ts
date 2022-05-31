@@ -136,8 +136,9 @@ export const productsAtomFamily = atomFamily(
 );
 
 const ascendingOrder = (a: APP.Child, b: APP.Child) => a.order - b.order;
-export const childrenAtomFamily = atomFamily((children: APP.Child[]) =>
-  atom(children.sort(ascendingOrder))
+export const childrenAtomFamily = atomFamily(
+  (children: APP.Child[]) => atom(children.sort(ascendingOrder)),
+  (a, b) => a === b
 );
 
 export const selectChildrenAtomFamily = atomFamily(

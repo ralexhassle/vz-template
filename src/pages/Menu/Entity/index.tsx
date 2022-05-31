@@ -1,49 +1,49 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
-import { DragSourceMonitor, useDrag, useDrop } from "react-dnd";
-import { Fragment, useCallback, useRef } from "react";
+import { Fragment, useCallback } from "react";
 import { useAtomValue, useAtom } from "jotai";
 import styled from "@emotion/styled";
 
-import type { Identifier, XYCoord } from "dnd-core";
-
 import { isEmpty } from "@app/utils";
 
-import Update from "../Update";
-import Delete from "../Delete";
 import Create from "../Create";
-import Select from "../Select";
-import Like from "../Like";
 
 import Product from "./Product";
-import ToggleIndicator from "./ToggleIndicator";
+import Category from "./Category";
 
 import {
-  categoriesAtomFamily,
-  toggleAtomFamily,
   selectChildrenAtomFamily,
   childrenAtomFamily,
   levelAtomFamily,
   isEditableAtom,
-  selectCategoryAtomFamily,
 } from "../tree";
 
 const ROOT_ENTITY_ID = Infinity;
+/**
+ * Entry point of the tree. This component is responsible for rendering the
+ * root node of the tree. The root node is a special case because it has no
+ * parent. Hence we create a virtual parent node with an id of `Infinity`.
+ * `Infinity` is of type number as well as entity id.
+ */
 export function RootCategory() {
-  const children = useAtomValue(selectChildrenAtomFamily(ROOT_ENTITY_ID));
   const isEditable = useAtomValue(isEditableAtom);
 
   if (isEditable) {
-    return <EditableEntities entities={children} parentId={null} />;
+    return <EditableEntities parentId={ROOT_ENTITY_ID} />;
   }
 
-  return <Entities entities={children} />;
+  return <Entities parentId={ROOT_ENTITY_ID} />;
 }
 
 interface EditableEntitiesProps {
-  entities: APP.EntityType["children"];
-  parentId: number | null;
+  parentId: number;
 }
-function EditableEntities({ parentId, entities }: EditableEntitiesProps) {
+/**
+ * This container is responsible for rendering editable entities.
+ * Entities are not discriminated yet. We select all sibling entities and
+ * create an intermediate children atom family.
+ */
+function EditableEntities({ parentId }: EditableEntitiesProps) {
+  const entities = useAtomValue(selectChildrenAtomFamily(parentId));
   const [children, setChildren] = useAtom(childrenAtomFamily(entities));
 
   const move = useCallback(
@@ -60,14 +60,9 @@ function EditableEntities({ parentId, entities }: EditableEntitiesProps) {
   );
 
   const renderChild = useCallback(
-    (child: APP.Child, order: number) => {
-      const { id, type } = child;
-      if (type === "category") {
-        return <Category.Edit key={id} {...{ id, order, move }} />;
-      }
-
-      return <Product.Edit key={id} {...{ id, order, move }} />;
-    },
+    (child: APP.Child, order: number) => (
+      <EditableEntity key={child.id} {...{ child, order, move }} />
+    ),
     [move]
   );
 
@@ -78,9 +73,41 @@ function EditableEntities({ parentId, entities }: EditableEntitiesProps) {
   return <Fragment>{children.map(renderChild)}</Fragment>;
 }
 
+interface EditableEntityProps {
+  child: APP.Child;
+  order: number;
+  move: (dragIndex: number, hoverIndex: number) => void;
+}
+/**
+ * This container is responsible for rendering an "editable" entity.
+ * It also render the children if it's a category. Depending on the entity type,
+ * the container will render a different entity component: a product or a category
+ */
+function EditableEntity({ child, order, move }: EditableEntityProps) {
+  const { id, type } = child;
+
+  if (type === "category") {
+    return (
+      <Category.Edit key={id} {...{ id, order, move }}>
+        <EntitiesContainer>
+          <EditableEntities parentId={id} />
+        </EntitiesContainer>
+      </Category.Edit>
+    );
+  }
+
+  return <Product.Edit key={id} {...{ id, order, move }} />;
+}
+
 interface EmptyEditableEntityProps {
   parentId: number | null;
 }
+/**
+ * When a category entity is empty, we render a create entity component.
+ * If we have reached a maximum depth level (3), we must only render a
+ * a create product entity component. Otherwise we have the choice to
+ * create a category or a product.
+ */
 function EmptyEditableEntity({ parentId }: EmptyEditableEntityProps) {
   const level = useAtomValue(levelAtomFamily(parentId));
   const isMaximumLevel = level + 1 > 3;
@@ -102,21 +129,48 @@ function EmptyEditableEntity({ parentId }: EmptyEditableEntityProps) {
 }
 
 interface EntitiesProps {
-  entities: APP.EntityType["children"];
+  parentId: number;
 }
-function Entities({ entities }: EntitiesProps) {
-  const [children] = useAtom(childrenAtomFamily(entities));
+/**
+ * This container is responsible for rendering entities.
+ * Entities are neither discriminated yet, nor editable.
+ */
+function Entities({ parentId }: EntitiesProps) {
+  const children = useAtomValue(selectChildrenAtomFamily(parentId));
 
-  const renderChild = useCallback((child: APP.Child, order: number) => {
-    const { id, type } = child;
-    if (type === "category") {
-      return <Category.View key={id} {...{ id, order }} />;
-    }
-
-    return <Product.View key={id} {...{ id, order }} />;
-  }, []);
+  const renderChild = useCallback(
+    (child: APP.Child, order: number) => (
+      <Entity {...{ child, order }} key={child.id} />
+    ),
+    []
+  );
 
   return <Fragment>{children.map(renderChild)}</Fragment>;
+}
+
+interface EntityProps {
+  child: APP.Child;
+  order: number;
+}
+/**
+ * This container is responsible for rendering a "view only" entity.
+ * It renders its children if it's a category. Depending on the entity type,
+ * the container will render a different entity component: a product or a category
+ */
+export function Entity({ child, order }: EntityProps) {
+  const { id, type } = child;
+
+  if (type === "category") {
+    return (
+      <Category.View key={id} {...{ id, order }}>
+        <EntitiesContainer>
+          <Entities parentId={id} />
+        </EntitiesContainer>
+      </Category.View>
+    );
+  }
+
+  return <Product.View key={id} {...{ id, order }} />;
 }
 
 const EntitiesContainer = styled("div")`
@@ -132,199 +186,3 @@ const EntitiesContainer = styled("div")`
     margin-bottom: 0.5em;
   }
 `;
-
-interface CategoryProps {
-  id: API.Category["categoryId"];
-}
-export function CategoryView({ id }: CategoryProps) {
-  const category = useAtomValue(categoriesAtomFamily(id));
-  const level = useAtomValue(levelAtomFamily(category.categoryId));
-
-  const [{ isOpen }, toggle] = useAtom(toggleAtomFamily(id));
-  const children = useAtomValue(selectChildrenAtomFamily(id));
-
-  const onClick = useCallback(() => {
-    toggle((prev) => ({ ...prev, isOpen: !isOpen }));
-  }, [isOpen, toggle]);
-
-  return (
-    <CategoryContainer data-category-level={level} data-category>
-      <CategorHeader>
-        <ToggleButton onClick={onClick} type="button">
-          <Like.Category {...{ category }} />
-          <Description>{category.description}</Description>
-          <ToggleIndicator isOpen={isOpen} />
-        </ToggleButton>
-      </CategorHeader>
-      {isOpen && (
-        <EntitiesContainer>
-          <Entities entities={children} />
-        </EntitiesContainer>
-      )}
-    </CategoryContainer>
-  );
-}
-
-interface EditableCategoryProps {
-  id: API.Category["categoryId"];
-  order: number;
-  move: (dragIndex: number, hoverIndex: number) => void;
-}
-export function EditableCategory({ id, order, move }: EditableCategoryProps) {
-  const ref = useRef<HTMLDivElement>(null);
-
-  const category = useAtomValue(categoriesAtomFamily(id));
-  const { parentId } = category;
-  const level = useAtomValue(levelAtomFamily(category.categoryId));
-
-  const [{ isOpen }, toggle] = useAtom(toggleAtomFamily(id));
-  const children = useAtomValue(selectChildrenAtomFamily(id));
-
-  const [{ isSelected }] = useAtom(
-    selectCategoryAtomFamily(category.categoryId)
-  );
-
-  const [{ handlerId }, drop] = useDrop<
-    APP.DragItem,
-    void,
-    { handlerId: Identifier | null }
-  >({
-    accept: String(category.parentId),
-    collect: (monitor) => ({ handlerId: monitor.getHandlerId() }),
-    hover: (item: APP.DragItem, monitor) => {
-      if (!ref.current) return;
-      const dragIndex = item.order;
-      const hoverIndex = order;
-
-      if (dragIndex === hoverIndex) return;
-      const hoverRect = ref.current?.getBoundingClientRect();
-      const hoverMiddleY = (hoverRect.bottom - hoverRect.top) / 2;
-      const clientOffset = monitor.getClientOffset();
-      const hoverClientY = (clientOffset as XYCoord).y - hoverRect.top;
-
-      if (dragIndex < hoverIndex && hoverClientY < hoverMiddleY) return;
-      if (dragIndex > hoverIndex && hoverClientY > hoverMiddleY) return;
-
-      move(dragIndex, hoverIndex);
-      // eslint-disable-next-line no-param-reassign
-      item.order = hoverIndex;
-    },
-  });
-
-  const [{ isDragging }, drag] = useDrag({
-    type: String(category.parentId),
-    canDrag: isSelected && !isOpen,
-    item: () => ({ id, order, type: "category" }),
-    collect: (monitor: DragSourceMonitor<APP.DragItem>) => ({
-      isDragging: monitor.isDragging(),
-    }),
-  });
-
-  const toggleOpen = useCallback(() => {
-    toggle((prev) => ({ ...prev, isOpen: !isOpen }));
-  }, [isOpen, toggle]);
-
-  drag(drop(ref));
-
-  return (
-    <Fragment>
-      {isSelected && (
-        <EditContainer>
-          <Create.Category {...{ parentId }} />
-          <Update.Category {...{ category }} />
-          <Delete.Category {...{ category }} />
-        </EditContainer>
-      )}
-      <CategoryContainer
-        ref={ref}
-        data-handler-id={handlerId}
-        data-is-dragging={isDragging}
-        data-category-level={level}
-        data-category
-      >
-        <CategorHeader>
-          <Select.Category {...{ category, isSelected }} />
-          <ToggleButton onClick={toggleOpen} type="button">
-            <Description>
-              <span>{category.description}</span>
-              {!category.enabled && <Unavalaible>Indisponible</Unavalaible>}
-            </Description>
-            <ToggleIndicator isOpen={isOpen} />
-          </ToggleButton>
-        </CategorHeader>
-        {isOpen && (
-          <EntitiesContainer>
-            <EditableEntities
-              entities={children}
-              parentId={category.categoryId}
-            />
-          </EntitiesContainer>
-        )}
-      </CategoryContainer>
-    </Fragment>
-  );
-}
-
-const Unavalaible = styled("span")`
-  padding: 0.25em 1.5em;
-  margin: 0 0.5em;
-
-  vertical-align: middle;
-
-  background: #b1b1b1;
-  border-radius: 0.5em;
-  color: white;
-`;
-
-const EditContainer = styled("div")`
-  display: flex;
-  // padding: 0 0.5em;
-
-  > div:not(:last-child) {
-    margin-right: 0.5em;
-  }
-`;
-
-const ToggleButton = styled("button")`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex: 1;
-
-  padding: 0.75em;
-
-  color: inherit;
-
-  background: none;
-  border: none;
-  cursor: pointer;
-`;
-
-const Description = styled("span")`
-  flex: 1;
-
-  font-weight: var(--font-bold);
-  text-align: start;
-`;
-
-const CategorHeader = styled("div")`
-  display: flex;
-
-  color: inherit;
-`;
-
-const CategoryContainer = styled("div")`
-  display: flex;
-  flex-direction: column;
-
-  &[data-is-dragging="true"] {
-    opacity: 0.5;
-  }
-`;
-
-const Category = {
-  View: CategoryView,
-  Edit: EditableCategory,
-};
-
-export default Entities;

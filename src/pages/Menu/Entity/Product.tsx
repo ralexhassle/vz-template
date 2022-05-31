@@ -42,6 +42,10 @@ interface PriceType {
   value: number;
   label: string | null;
 }
+/**
+ * Transforming API Product prices into a PriceType array
+ * and filtering out all nullish values.
+ */
 const pricesAtomFamily = atomFamily(
   (product: API.Product) =>
     atom<PriceType[]>(
@@ -60,6 +64,10 @@ interface ProductPriceProps {
   value: PriceType["value"];
   label: PriceType["label"];
 }
+/**
+ * The value of product price is a raw number hence we have to
+ * formated it with its corresponding currency symbol
+ */
 function ProductPrice({ label, value }: ProductPriceProps) {
   return (
     <ProductPriceContainer>
@@ -84,6 +92,10 @@ const ProductPriceValue = styled("span")``;
 interface ProductBodyProps {
   product: API.Product;
 }
+/**
+ * The product body layout is different depending on if the product has
+ * only one price and no label associated.
+ */
 function ProductBody({ product }: ProductBodyProps) {
   const prices = useAtomValue(pricesAtomFamily(product));
   const isPriceSingle = prices.length === 1 && !prices[0].label;
@@ -164,6 +176,10 @@ const ProductDescription = styled("p")`
 interface ProductProps {
   id: API.Product["productId"];
 }
+/**
+ * A product component which can be "liked". We pass the depth level
+ * value to a data attribute for syle customizing purpose.
+ */
 function Product({ id }: ProductProps) {
   const product = useAtomValue(productsAtomFamily(id));
   const level = useAtomValue(levelAtomFamily(product.categoryId));
@@ -180,6 +196,9 @@ function Product({ id }: ProductProps) {
 interface EditActionsProps {
   product: API.Product;
 }
+/**
+ * Container which encapsulates some CRUD actions
+ */
 function EditActions({ product }: EditActionsProps) {
   const deleteProduct = useUpdateAtom(deleteProductAtom);
   const { isMultiSelect, selectedProducts } = useAtomValue(
@@ -205,7 +224,6 @@ function EditActions({ product }: EditActionsProps) {
 
 const EditContainer = styled("div")`
   display: flex;
-  // padding: 0 0.5em;
 
   > div:not(:last-child) {
     margin-right: 0.5em;
@@ -217,6 +235,10 @@ interface EditableProductProps {
   order: number;
   move: (dragIndex: number, hoverIndex: number) => void;
 }
+/**
+ * A "editable "Product" is a node leaf in the tree. It does not
+ * have any children. It can be selected, moved, updated or deleted.
+ */
 function EditableProduct({ id, order, move }: EditableProductProps) {
   const ref = useRef<HTMLDivElement>(null);
 
