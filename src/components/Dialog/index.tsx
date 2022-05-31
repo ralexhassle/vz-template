@@ -130,7 +130,7 @@ const DialogContent = styled("div")`
     color: var(--color-title);
   }
 
-  h3 {
+  > h3 {
     margin-bottom: 1em;
 
     text-align: center;

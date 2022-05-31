@@ -228,7 +228,7 @@ export function EditableCategory({ id, order, move }: EditableCategoryProps) {
 
   return (
     <Fragment>
-      {isSelected && !isOpen && (
+      {isSelected && (
         <EditContainer>
           <Create.Category {...{ parentId }} />
           <Update.Category {...{ category }} />
@@ -243,7 +243,7 @@ export function EditableCategory({ id, order, move }: EditableCategoryProps) {
         data-category
       >
         <CategorHeader>
-          {!isOpen && <Select.Category {...{ category, isSelected }} />}
+          <Select.Category {...{ category, isSelected }} />
           <ToggleButton onClick={toggleOpen} type="button">
             <Description>
               <span>{category.description}</span>

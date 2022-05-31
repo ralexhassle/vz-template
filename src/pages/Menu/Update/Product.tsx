@@ -10,13 +10,14 @@ interface UpdateProductDialogProps {
   toggle: VoidFunction;
 }
 function UpdateProductDialog({ product, toggle }: UpdateProductDialogProps) {
-  const [label, set] = useState(product.label);
+  const [label, setLabel] = useState(product.label);
+  const [description, setDescription] = useState(product.description || "");
   const [isEnabled, toggleEnabled] = useReducer((s) => !s, product.enabled);
   const update = useUpdateAtom(updateProductAtom);
 
   const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    update({ ...product, label, enabled: isEnabled });
+    update({ ...product, label, enabled: isEnabled, description });
     toggle();
   };
 
@@ -26,7 +27,21 @@ function UpdateProductDialog({ product, toggle }: UpdateProductDialogProps) {
       <EnableCheckbox name="enabled" checked={isEnabled} toggle={toggleEnabled}>
         Activer le produit
       </EnableCheckbox>
-      <TextInputStyled value={label} onChange={(e) => set(e.target.value)} />
+
+      <TextInputContainer>
+        <TextInputLabel>Nom du produit</TextInputLabel>
+        <TextInputStyled
+          value={label}
+          onChange={(e) => setLabel(e.target.value)}
+        />
+      </TextInputContainer>
+      <TextInputContainer>
+        <TextInputLabel>Description</TextInputLabel>
+        <TextInputStyled
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+        />
+      </TextInputContainer>
       <Pushable>Modifier</Pushable>
     </UpdateProductDialogContainer>
   );
@@ -51,12 +66,25 @@ const Title = styled("h2")`
   text-align: center;
 `;
 
+const TextInputContainer = styled("div")`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+
+  margin-bottom: 1em;
+`;
+
+const TextInputLabel = styled("h3")`
+  margin-bottom: 0.25em;
+  font-weight: var(--font-bold);
+  text-align: center;
+`;
+
 const TextInputStyled = styled(TextInput)`
+  width: 100%;
   > input {
     padding: 0.5em;
   }
-
-  margin-bottom: 1em;
 `;
 
 const UpdateProductDialogContainer = styled("form")`
