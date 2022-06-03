@@ -1,14 +1,11 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
 import { DragSourceMonitor, useDrag, useDrop } from "react-dnd";
-import { Fragment, useCallback, useRef } from "react";
+import { useCallback, useRef } from "react";
 import { useAtomValue, useAtom } from "jotai";
 import styled from "@emotion/styled";
 
 import type { Identifier, XYCoord } from "dnd-core";
 
-import Update from "../Update";
-import Delete from "../Delete";
-import Create from "../Create";
 import Select from "../Select";
 import Like from "../Like";
 
@@ -18,7 +15,7 @@ import {
   categoriesAtomFamily,
   toggleAtomFamily,
   levelAtomFamily,
-  selectCategoryAtomFamily,
+  isCategorySelectedAtomFamily,
 } from "../tree";
 
 interface CategoryProps {
@@ -52,19 +49,6 @@ function Category({ id, children }: CategoryProps) {
   );
 }
 
-interface EditActionsProps {
-  category: API.Category;
-}
-function EditActions({ category }: EditActionsProps) {
-  return (
-    <EditContainer>
-      <Create.Category {...{ parentId: category.parentId }} />
-      <Update.Category {...{ category }} />
-      <Delete.Category {...{ category }} />
-    </EditContainer>
-  );
-}
-
 interface EditableCategoryProps {
   id: API.Category["categoryId"];
   order: number;
@@ -80,11 +64,11 @@ function EditableCategory(props: EditableCategoryProps) {
   const { id, order, move, children } = props;
   const ref = useRef<HTMLDivElement>(null);
 
+  const [{ isOpen }, toggle] = useAtom(toggleAtomFamily(id));
   const category = useAtomValue(categoriesAtomFamily(id));
   const level = useAtomValue(levelAtomFamily(category.categoryId));
-  const [{ isOpen }, toggle] = useAtom(toggleAtomFamily(id));
-  const [{ isSelected }] = useAtom(
-    selectCategoryAtomFamily(category.categoryId)
+  const isSelected = useAtomValue(
+    isCategorySelectedAtomFamily(category.categoryId)
   );
 
   const [{ handlerId }, drop] = useDrop<
@@ -130,28 +114,25 @@ function EditableCategory(props: EditableCategoryProps) {
   drag(drop(ref));
 
   return (
-    <Fragment>
-      {isSelected && <EditActions {...{ category }} />}
-      <CategoryContainer
-        ref={ref}
-        data-handler-id={handlerId}
-        data-is-dragging={isDragging}
-        data-category-level={level}
-        data-category
-      >
-        <CategorHeader>
-          <Select.Category {...{ category, isSelected }} />
-          <ToggleButton onClick={toggleOpen} type="button">
-            <Description>
-              <span>{category.description}</span>
-              {!category.enabled && <Unavalaible>Indisponible</Unavalaible>}
-            </Description>
-            <ToggleIndicator isOpen={isOpen} />
-          </ToggleButton>
-        </CategorHeader>
-        {isOpen && <Children>{children}</Children>}
-      </CategoryContainer>
-    </Fragment>
+    <CategoryContainer
+      ref={ref}
+      data-handler-id={handlerId}
+      data-is-dragging={isDragging}
+      data-category-level={level}
+      data-category
+    >
+      <CategorHeader>
+        {!isOpen && <Select.Category {...{ category, isSelected }} />}
+        <ToggleButton onClick={toggleOpen} type="button">
+          <Description>
+            <span>{category.description}</span>
+            {!category.enabled && <Unavalaible>Indisponible</Unavalaible>}
+          </Description>
+          <ToggleIndicator isOpen={isOpen} />
+        </ToggleButton>
+      </CategorHeader>
+      {isOpen && <Children>{children}</Children>}
+    </CategoryContainer>
   );
 }
 
@@ -178,14 +159,6 @@ const Unavalaible = styled("span")`
   background: #b1b1b1;
   border-radius: 0.5em;
   color: white;
-`;
-
-const EditContainer = styled("div")`
-  display: flex;
-
-  > div:not(:last-child) {
-    margin-right: 0.5em;
-  }
 `;
 
 const ToggleButton = styled("button")`

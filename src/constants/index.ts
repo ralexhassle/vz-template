@@ -20,5 +20,5 @@ export const PORTALS = {
   NAVIGATION: { id: PORTAL_ID.NAVIGATION, zIndex: 2 },
   FOOTER: { id: PORTAL_ID.FOOTER, zIndex: 1 },
   DIALOG: { id: PORTAL_ID.DIALOG, zIndex: 999 },
-  ACTION: { id: PORTAL_ID.ACTION, zIndex: 999 },
+  ACTION: { id: PORTAL_ID.ACTION, zIndex: 998 },
 } as const;

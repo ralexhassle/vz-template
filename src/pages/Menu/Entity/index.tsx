@@ -9,7 +9,7 @@ import Product from "./Product";
 import Category from "./Category";
 
 import {
-  selectChildrenAtomFamily,
+  getChildrenAtomFamily,
   childrenAtomFamily,
   levelAtomFamily,
 } from "../tree";
@@ -33,6 +33,12 @@ export function RootEntities({ isEditable }: RootEntitiesProps) {
   return <Entities parentId={ROOT_ENTITY_ID} />;
 }
 
+const isCategorySiblings = (siblings: APP.Child[]) =>
+  siblings.some((sibling) => sibling.type === "category");
+
+const isProductSiblings = (siblings: APP.Child[]) =>
+  siblings.some((sibling) => sibling.type === "product");
+
 interface EditableEntitiesProps {
   parentId: number;
 }
@@ -42,12 +48,12 @@ interface EditableEntitiesProps {
  * create an intermediate children atom family.
  */
 function EditableEntities({ parentId }: EditableEntitiesProps) {
-  const entities = useAtomValue(selectChildrenAtomFamily(parentId));
-  const [children, setChildren] = useAtom(childrenAtomFamily(entities));
+  const children = useAtomValue(getChildrenAtomFamily(parentId));
+  const [siblings, setSiblings] = useAtom(childrenAtomFamily(children));
 
   const move = useCallback(
     (dragIndex: number, hoverIndex: number) => {
-      setChildren((prev: APP.Child[]) => {
+      setSiblings((prev: APP.Child[]) => {
         const dragItem = prev[dragIndex];
         const newChildren = [...prev];
         newChildren.splice(dragIndex, 1);
@@ -55,21 +61,27 @@ function EditableEntities({ parentId }: EditableEntitiesProps) {
         return newChildren;
       });
     },
-    [setChildren]
+    [setSiblings]
   );
 
-  const renderChild = useCallback(
+  const renderSibling = useCallback(
     (child: APP.Child, order: number) => (
       <EditableEntity key={child.id} {...{ child, order, move }} />
     ),
     [move]
   );
 
-  if (isEmpty(children)) {
+  if (isEmpty(siblings)) {
     return <EmptyEditableEntity {...{ parentId }} />;
   }
 
-  return <Fragment>{children.map(renderChild)}</Fragment>;
+  return (
+    <Fragment>
+      {isCategorySiblings(siblings) && <Create.Category {...{ parentId }} />}
+      {isProductSiblings(siblings) && <Create.Product {...{ parentId }} />}
+      {siblings.map(renderSibling)}
+    </Fragment>
+  );
 }
 
 interface EditableEntityProps {
@@ -111,16 +123,14 @@ function EmptyEditableEntity({ parentId }: EmptyEditableEntityProps) {
 
   if (isMaximumLevel) {
     return (
-      <Fragment>
-        {parentId && <Create.Product categoryId={parentId} />}
-      </Fragment>
+      <Fragment>{parentId && <Create.Product parentId={parentId} />}</Fragment>
     );
   }
 
   return (
     <Fragment>
       <Create.Category parentId={parentId} />
-      {parentId && <Create.Product categoryId={parentId} />}
+      {parentId && <Create.Product parentId={parentId} />}
     </Fragment>
   );
 }
@@ -133,7 +143,7 @@ interface EntitiesProps {
  * Entities are neither discriminated yet, nor editable.
  */
 function Entities({ parentId }: EntitiesProps) {
-  const children = useAtomValue(selectChildrenAtomFamily(parentId));
+  const children = useAtomValue(getChildrenAtomFamily(parentId));
 
   const renderChild = useCallback(
     (child: APP.Child, order: number) => (

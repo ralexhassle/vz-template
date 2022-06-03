@@ -20,14 +20,14 @@ function DeleteIcon() {
 }
 
 interface Props {
-  product: API.Product;
+  products: API.Product[];
 }
-function DeleteProduct({ product }: Props) {
+function DeleteProducts({ products }: Props) {
   const deleteProduct = useUpdateAtom(deleteProductAtom);
 
   const onClick = useCallback(() => {
-    deleteProduct(product);
-  }, [product, deleteProduct]);
+    products.forEach((product) => deleteProduct(product));
+  }, [products, deleteProduct]);
 
   return (
     <Button onClick={onClick} type="button">
@@ -64,4 +64,4 @@ const Button = styled("button")`
   cursor: pointer;
 `;
 
-export default DeleteProduct;
+export default DeleteProducts;

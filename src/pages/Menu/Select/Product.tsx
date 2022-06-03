@@ -1,30 +1,46 @@
 import styled from "@emotion/styled";
+import { useUpdateAtom } from "jotai/utils";
+import { useCallback, useEffect } from "react";
 
-function Icon() {
+import { selectedProductsAtom, toggleSelectProductAtom } from "../tree";
+
+function Icon({ isSelected }: { isSelected: boolean }) {
   return (
-    <svg
-      stroke="currentColor"
-      fill="currentColor"
-      strokeWidth="0"
-      viewBox="0 0 512 512"
-      height="0.75em"
-      width="1em"
-    >
-      <path d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8z" />
+    <svg stroke="none" fill="none" viewBox="0 0 20 20" height="1em" width="1em">
+      <circle cx="10" cy="10" r="9" stroke="currentColor" strokeWidth="2" />
+      {isSelected && <circle cx="10" cy="10" r="5" fill="currentColor" />}
     </svg>
   );
 }
 
 interface Props {
   isSelected: boolean;
-  toggleSelect: VoidFunction;
+  product: API.Product;
   children: React.ReactNode;
 }
-function SelectProduct({ toggleSelect, isSelected, children }: Props) {
+function SelectProduct({ product, isSelected, children }: Props) {
+  const toggleProduct = useUpdateAtom(toggleSelectProductAtom);
+  // const setProduct = useUpdateAtom(selectedProductsAtom);
+
+  const toggleSelect = useCallback(() => {
+    toggleProduct(product);
+  }, [toggleProduct, product]);
+
+  // useEffect(() => {
+  //   if (isSelected) {
+  //     setProduct((prev) => ({ ...prev, [product.productId]: product }));
+  //   } else {
+  //     setProduct((prev) => {
+  //       const { [product.productId]: _, ...rest } = prev;
+  //       return rest;
+  //     });
+  //   }
+  // }, [isSelected, setProduct, product]);
+
   return (
     <Button onClick={toggleSelect} data-is-selected={isSelected}>
       <SelectIconContainer data-is-selected={isSelected}>
-        <Icon />
+        <Icon {...{ isSelected }} />
       </SelectIconContainer>
       {children}
     </Button>
@@ -39,14 +55,12 @@ const SelectIconContainer = styled("div")`
   padding: 0.5em;
   margin-right: 0.5em;
 
-  color: rgb(228, 224, 225);
+  color: var(--like-product-color);
 
   border-radius: 0.25em;
-  box-shadow: var(--select-product);
 
   &[data-is-selected="true"] {
     color: var(--like-product-color);
-    box-shadow: var(--unselect-product);
   }
 `;
 

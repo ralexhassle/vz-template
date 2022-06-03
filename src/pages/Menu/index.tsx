@@ -9,6 +9,8 @@ import { DndProvider } from "react-dnd";
 import { Checkbox } from "@app/components";
 
 import { RootEntities } from "./Entity";
+import ActionButton from "./ActionButton";
+
 import { createEntitiesAtom, isEditableAtom, menuAtom } from "./tree";
 
 interface MenuTreeProps {
@@ -134,9 +136,11 @@ function Menu() {
           <MenuTree {...{ isEditable }} />
         </DndProvider>
       </Suspense>
+      <ActionButton />
     </Root>
   );
 }
+
 const EditableCheckbox = styled(Checkbox)`
   display: flex;
   align-items: center;

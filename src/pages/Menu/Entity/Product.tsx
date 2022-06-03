@@ -1,24 +1,18 @@
 import { DragSourceMonitor, useDrag, useDrop } from "react-dnd";
-import { Fragment, useCallback, useRef } from "react";
+import { useCallback, useRef } from "react";
 import { atom, useAtom, useAtomValue } from "jotai";
-import { atomFamily, useUpdateAtom } from "jotai/utils";
+import { atomFamily } from "jotai/utils";
 import styled from "@emotion/styled";
 
 import type { Identifier, XYCoord } from "dnd-core";
 
-import Update from "../Update";
-import Delete from "../Delete";
 import Like from "../Like";
 import Select from "../Select";
-import Create from "../Create";
-import ActionButton from "./ActionButton";
 
 import {
   productsAtomFamily,
   levelAtomFamily,
-  selectProductAtomFamily,
-  selectedProductsAtomFamily,
-  deleteProductAtom,
+  isProductSelectedAtomFamily,
 } from "../tree";
 
 const getFrenchPrice = (value: number) => {
@@ -193,43 +187,6 @@ function Product({ id }: ProductProps) {
   );
 }
 
-interface EditActionsProps {
-  product: API.Product;
-}
-/**
- * Container which encapsulates some CRUD actions
- */
-function EditActions({ product }: EditActionsProps) {
-  const deleteProduct = useUpdateAtom(deleteProductAtom);
-  const { isMultiSelect, selectedProducts } = useAtomValue(
-    selectedProductsAtomFamily(product)
-  );
-
-  const deleteSelectedProducts = useCallback(() => {
-    selectedProducts.forEach((selectedProduct) => {
-      deleteProduct(selectedProduct);
-    });
-  }, [selectedProducts, deleteProduct]);
-
-  if (isMultiSelect) return <ActionButton onClick={deleteSelectedProducts} />;
-
-  return (
-    <EditContainer>
-      <Create.Product {...{ categoryId: product.categoryId }} />
-      <Update.Product {...{ product }} />
-      <Delete.Product {...{ product }} />
-    </EditContainer>
-  );
-}
-
-const EditContainer = styled("div")`
-  display: flex;
-
-  > div:not(:last-child) {
-    margin-right: 0.5em;
-  }
-`;
-
 interface EditableProductProps {
   id: API.Product["productId"];
   order: number;
@@ -243,16 +200,10 @@ function EditableProduct({ id, order, move }: EditableProductProps) {
   const ref = useRef<HTMLDivElement>(null);
 
   const product = useAtomValue(productsAtomFamily(id));
-  const { categoryId } = product;
-  const level = useAtomValue(levelAtomFamily(categoryId));
-
-  const [{ isSelected }, set] = useAtom(
-    selectProductAtomFamily(product.productId)
+  const level = useAtomValue(levelAtomFamily(product.categoryId));
+  const isSelected = useAtomValue(
+    isProductSelectedAtomFamily(product.productId)
   );
-
-  const toggleSelect = useCallback(() => {
-    set((prev) => ({ ...prev, isSelected: !prev.isSelected }));
-  }, [set]);
 
   const [{ handlerId }, drop] = useDrop<
     APP.DragItem,
@@ -284,7 +235,7 @@ function EditableProduct({ id, order, move }: EditableProductProps) {
   const [{ isDragging }, drag] = useDrag({
     type: "product",
     canDrag: isSelected,
-    item: () => ({ id, order, type: "product", parentId: categoryId }),
+    item: () => ({ id, order, type: "product", parentId: product.categoryId }),
     collect: (monitor: DragSourceMonitor<APP.DragItem>) => ({
       isDragging: monitor.isDragging(),
     }),
@@ -293,20 +244,16 @@ function EditableProduct({ id, order, move }: EditableProductProps) {
   drag(drop(ref));
 
   return (
-    <Fragment>
-      {isSelected && <EditActions {...{ product }} />}
-
-      <ProductContainer
-        ref={ref}
-        data-handler-id={handlerId}
-        data-is-dragging={isDragging}
-        data-product-level={level}
-      >
-        <Select.Product {...{ toggleSelect, isSelected }}>
-          <ProductBody {...{ product }} />
-        </Select.Product>
-      </ProductContainer>
-    </Fragment>
+    <ProductContainer
+      ref={ref}
+      data-handler-id={handlerId}
+      data-is-dragging={isDragging}
+      data-product-level={level}
+    >
+      <Select.Product {...{ product, isSelected }}>
+        <ProductBody {...{ product }} />
+      </Select.Product>
+    </ProductContainer>
   );
 }
 
