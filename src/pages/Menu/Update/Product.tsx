@@ -145,7 +145,6 @@ const IconContainer = styled("div")`
 const Button = styled("button")`
   display: flex;
   align-items: center;
-  align-self: flex-start;
 
   padding: 0.5em;
 

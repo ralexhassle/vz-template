@@ -93,11 +93,11 @@ interface ProductBodyProps {
 function ProductBody({ product }: ProductBodyProps) {
   const prices = useAtomValue(pricesAtomFamily(product));
   const isPriceSingle = prices.length === 1 && !prices[0].label;
-  const { description } = product;
+  const { description, enabled } = product;
 
   if (isPriceSingle) {
     return (
-      <ProductBodyContainer data-product-enabled={product.enabled}>
+      <ProductBodyContainer data-product-enabled={enabled}>
         <SingleProductContainer>
           <ProductLabel>{product.label}</ProductLabel>
           <SingleProductPricesContainer>
@@ -112,7 +112,7 @@ function ProductBody({ product }: ProductBodyProps) {
   }
 
   return (
-    <ProductBodyContainer data-product-enabled={product.enabled}>
+    <ProductBodyContainer data-product-enabled={enabled}>
       <ProductPricesContainer>
         <ProductLabel>{product.label}</ProductLabel>
         {description && <ProductDescription>{description}</ProductDescription>}

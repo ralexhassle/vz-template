@@ -10,6 +10,7 @@ import { Portal } from "@app/components";
 
 import Update from "../Update";
 import Delete from "../Delete";
+import Enable from "../Enable";
 
 import {
   resetSelectedCategoriesAtom,
@@ -94,10 +95,6 @@ const ActionContainer = styled(animated.div)`
   z-index: 1;
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
-
-  margin: auto;
 `;
 
 const ROTATE = {
@@ -130,14 +127,22 @@ function ActionButton() {
           <Action index={1}>
             <Delete.Product {...{ product }} />
           </Action>
+          <Action index={2}>
+            <Enable.Product {...{ products }} />
+          </Action>
         </Fragment>
       );
     }
 
     return (
-      <Action index={0}>
-        <Delete.Products {...{ products }} />
-      </Action>
+      <Fragment>
+        <Action index={0}>
+          <Delete.Products {...{ products }} />
+        </Action>
+        <Action index={1}>
+          <Enable.Product {...{ products }} />
+        </Action>
+      </Fragment>
     );
   }, []);
 
@@ -155,14 +160,22 @@ function ActionButton() {
           <Action index={1}>
             <Delete.Category {...{ category }} />
           </Action>
+          <Action index={2}>
+            <Enable.Category {...{ categories }} />
+          </Action>
         </Fragment>
       );
     }
 
     return (
-      <Action index={0}>
-        <Delete.Categories {...{ categories }} />
-      </Action>
+      <Fragment>
+        <Action index={0}>
+          <Delete.Categories {...{ categories }} />
+        </Action>
+        <Action index={1}>
+          <Enable.Category {...{ categories }} />
+        </Action>
+      </Fragment>
     );
   }, []);
 

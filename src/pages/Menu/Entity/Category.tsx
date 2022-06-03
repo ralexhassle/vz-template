@@ -155,10 +155,11 @@ const Unavalaible = styled("span")`
   margin: 0 0.5em;
 
   vertical-align: middle;
+  color: white;
+  font-size: smaller;
 
   background: #b1b1b1;
   border-radius: 0.5em;
-  color: white;
 `;
 
 const ToggleButton = styled("button")`

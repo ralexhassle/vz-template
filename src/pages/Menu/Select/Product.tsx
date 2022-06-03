@@ -20,22 +20,20 @@ interface Props {
 }
 function SelectProduct({ product, isSelected, children }: Props) {
   const toggleProduct = useUpdateAtom(toggleSelectProductAtom);
-  // const setProduct = useUpdateAtom(selectedProductsAtom);
+  const setProduct = useUpdateAtom(selectedProductsAtom);
 
   const toggleSelect = useCallback(() => {
     toggleProduct(product);
   }, [toggleProduct, product]);
 
-  // useEffect(() => {
-  //   if (isSelected) {
-  //     setProduct((prev) => ({ ...prev, [product.productId]: product }));
-  //   } else {
-  //     setProduct((prev) => {
-  //       const { [product.productId]: _, ...rest } = prev;
-  //       return rest;
-  //     });
-  //   }
-  // }, [isSelected, setProduct, product]);
+  useEffect(() => {
+    setProduct((prev) => {
+      const { productId } = product;
+      if (isSelected) return { ...prev, [productId]: product };
+      const { [productId]: _, ...rest } = prev;
+      return rest;
+    });
+  }, [isSelected, setProduct, product]);
 
   return (
     <Button onClick={toggleSelect} data-is-selected={isSelected}>
