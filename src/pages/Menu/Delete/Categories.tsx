@@ -1,8 +1,8 @@
-import styled from "@emotion/styled";
-import { useUpdateAtom } from "jotai/utils";
 import { useCallback } from "react";
+import { useUpdateAtom } from "jotai/utils";
+import styled from "@emotion/styled";
 
-import { deleteProductAtom } from "../tree";
+import { deleteCategoryAtom } from "../tree";
 
 function DeleteIcon() {
   return (
@@ -20,14 +20,14 @@ function DeleteIcon() {
 }
 
 interface Props {
-  product: API.Product;
+  categories: API.Category[];
 }
-function DeleteProduct({ product }: Props) {
-  const deleteProduct = useUpdateAtom(deleteProductAtom);
+function DeleteCategories({ categories }: Props) {
+  const deleteCategory = useUpdateAtom(deleteCategoryAtom);
 
   const onClick = useCallback(() => {
-    deleteProduct(product);
-  }, [product, deleteProduct]);
+    categories.forEach((category) => deleteCategory(category));
+  }, [categories, deleteCategory]);
 
   return (
     <Button onClick={onClick} type="button">
@@ -64,4 +64,4 @@ const Button = styled("button")`
   cursor: pointer;
 `;
 
-export default DeleteProduct;
+export default DeleteCategories;

@@ -1,20 +1,14 @@
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import { useUpdateAtom } from "jotai/utils";
 import styled from "@emotion/styled";
 
-import { toggleSelectCategoryAtom } from "../tree";
+import { selectedCategoriesAtom, toggleSelectCategoryAtom } from "../tree";
 
-function Icon() {
+function Icon({ isSelected }: { isSelected: boolean }) {
   return (
-    <svg
-      stroke="currentColor"
-      fill="currentColor"
-      strokeWidth="0"
-      viewBox="0 0 512 512"
-      height="0.75em"
-      width="1em"
-    >
-      <path d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8z" />
+    <svg stroke="none" fill="none" viewBox="0 0 20 20" height="1em" width="1em">
+      <circle cx="10" cy="10" r="9" stroke="currentColor" strokeWidth="2" />
+      {isSelected && <circle cx="10" cy="10" r="5" fill="currentColor" />}
     </svg>
   );
 }
@@ -25,15 +19,25 @@ interface Props {
 }
 function SelectCategory({ isSelected, category }: Props) {
   const toggleSelectCategory = useUpdateAtom(toggleSelectCategoryAtom);
+  const setCategory = useUpdateAtom(selectedCategoriesAtom);
 
   const toggleSelect = useCallback(() => {
     toggleSelectCategory(category);
   }, [toggleSelectCategory, category]);
 
+  useEffect(() => {
+    setCategory((prev) => {
+      const { categoryId } = category;
+      if (isSelected) return { ...prev, [categoryId]: category };
+      const { [categoryId]: _, ...rest } = prev;
+      return rest;
+    });
+  }, [isSelected, setCategory, category]);
+
   return (
     <Button onClick={toggleSelect}>
       <SelectIconContainer data-is-selected={isSelected}>
-        <Icon />
+        <Icon {...{ isSelected }} />
       </SelectIconContainer>
     </Button>
   );
@@ -44,16 +48,14 @@ const SelectIconContainer = styled("div")`
   align-self: stretch;
   align-items: center;
 
-  padding: 0.5em;
+  padding: 0.5em 0 0.5em 0.5em;
 
-  color: rgb(228, 224, 225);
+  color: var(--like-product-color);
 
   border-radius: 0.25em;
-  box-shadow: var(--select-category);
 
   &[data-is-selected="true"] {
     color: var(--like-product-color);
-    box-shadow: var(--unselect-category);
   }
 `;
 

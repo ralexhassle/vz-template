@@ -3,16 +3,30 @@ import { atom } from "jotai";
 import { atomFamily } from "jotai/utils";
 
 import { client } from "@app/config";
-import { isDefined } from "@utils";
+import { isDefined, isEmpty } from "@utils";
 
 export const menuAtom = atom(async () => client.Menu.getMenu());
 
 type Collection<T> = { [key: number]: T };
 
 export const isEditableAtom = atom(false);
+
 export const categoriesAtom = atom<Collection<API.Category>>({});
 export const productsAtom = atom<Collection<API.Product>>({});
 export const entitiesAtom = atom<Collection<APP.EntityType>>({});
+
+export const selectedProductsAtom = atom<Collection<API.Product>>({});
+export const selectedCategoriesAtom = atom<Collection<API.Category>>({});
+
+export const resetSelectedCategoriesAtom = atom(
+  (get) => get(selectedCategoriesAtom),
+  (_get, set) => set(selectedCategoriesAtom, {})
+);
+
+export const resetSelectedProductsAtom = atom(
+  (get) => get(selectedProductsAtom),
+  (_get, set) => set(selectedProductsAtom, {})
+);
 
 /**
  * Here is our chance to do expensive work and prepare the tree data structure.
@@ -101,15 +115,15 @@ export const likeProductAtomFamily = atomFamily(
   (a, b) => a === b
 );
 
-export const selectCategoryAtomFamily = atomFamily(
+export const isCategorySelectedAtomFamily = atomFamily(
   (categoryId: API.Category["categoryId"]) =>
-    atom({ isSelected: false, categoryId }),
+    atom((get) => categoryId in get(selectedCategoriesAtom)),
   (a, b) => a === b
 );
 
-export const selectProductAtomFamily = atomFamily(
+export const isProductSelectedAtomFamily = atomFamily(
   (productId: API.Product["productId"]) =>
-    atom({ isSelected: false, productId }),
+    atom((get) => productId in get(selectedProductsAtom)),
   (a, b) => a === b
 );
 
@@ -125,18 +139,18 @@ export const categoriesAtomFamily = atomFamily(
   (a, b) => a === b
 );
 
-const selectAncestors = (
+const getAncestors = (
   categories: Collection<API.Category>,
   id: number | null
 ): API.Category[] => {
   if (id === null) return [];
   const category = categories[id];
   if (!isDefined(category)) return [];
-  return [category, ...selectAncestors(categories, category.parentId)];
+  return [category, ...getAncestors(categories, category.parentId)];
 };
 export const levelAtomFamily = atomFamily(
   (id: API.Category["parentId"]) =>
-    atom((get) => selectAncestors(get(categoriesAtom), id).length),
+    atom((get) => getAncestors(get(categoriesAtom), id).length),
   (a, b) => a === b
 );
 
@@ -152,7 +166,7 @@ export const childrenAtomFamily = atomFamily(
   (a, b) => a === b
 );
 
-export const selectChildrenAtomFamily = atomFamily(
+export const getChildrenAtomFamily = atomFamily(
   (id: number) =>
     atom((get) => {
       const entities = get(entitiesAtom)[id];
@@ -234,12 +248,18 @@ export const deleteProductAtom = atom(
   null,
   (get, set, { productId, categoryId }: API.Product) => {
     const { [productId]: _, ...products } = get(productsAtom);
+    set(productsAtom, products);
+
     set(entitiesAtom, (prev) => {
       const parent = get(entitiesAtom)[categoryId];
       const children = parent.children.filter(removeChild(productId));
       return { ...prev, [categoryId]: { ...parent, children } };
     });
-    set(productsAtom, products);
+
+    set(selectedProductsAtom, (prev) => {
+      const { [productId]: _, ...selectedProducts } = prev;
+      return selectedProducts;
+    });
   }
 );
 
@@ -248,6 +268,8 @@ export const deleteCategoryAtom = atom(
   null,
   (get, set, { parentId, categoryId }: API.Category) => {
     const { [categoryId]: _, ...categories } = get(categoriesAtom);
+    set(categoriesAtom, categories);
+
     set(entitiesAtom, (prev) => {
       const id = parentId === null ? Infinity : parentId;
       const parent = get(entitiesAtom)[id];
@@ -255,7 +277,11 @@ export const deleteCategoryAtom = atom(
       const { [categoryId]: _, ...entities } = prev;
       return { ...entities, [id]: { ...parent, children } };
     });
-    set(categoriesAtom, categories);
+
+    set(selectedCategoriesAtom, (prev) => {
+      const { [categoryId]: _, ...selectedCategories } = prev;
+      return selectedCategories;
+    });
   }
 );
 
@@ -269,7 +295,7 @@ export const toggleLikeProductAtom = atom(
       isSelected: !subject.isSelected,
     });
 
-    const ancestors = selectAncestors(get(categoriesAtom), product.categoryId);
+    const ancestors = getAncestors(get(categoriesAtom), product.categoryId);
 
     ancestors.forEach((ancestor: API.Category) => {
       set(likeCategoryCount(ancestor.categoryId), (prev) => {
@@ -280,40 +306,68 @@ export const toggleLikeProductAtom = atom(
   }
 );
 
-export const selectedProductsAtomFamily = atomFamily(
-  (product: API.Product) =>
-    atom((get) => {
-      const parent: APP.EntityType = get(entitiesAtom)[product.categoryId];
+export const toggleSelectProductAtom = atom(
+  null,
+  (get, set, currentProduct: API.Product) => {
+    const { productId, categoryId } = currentProduct;
+    const products = get(selectedProductsAtom);
 
-      const selectedProducts = parent.children
-        .filter(({ id }) => get(selectProductAtomFamily(id)).isSelected)
-        .map(({ id }) => get(productsAtom)[id]);
+    set(resetSelectedCategoriesAtom, {});
 
-      return { isMultiSelect: selectedProducts.length >= 2, selectedProducts };
-    }),
-  (a, b) => a.categoryId === b.categoryId
+    Object.values(products).forEach((product: API.Product) => {
+      if (product.productId === productId) {
+        set(selectedProductsAtom, (prev) => {
+          const { [product.productId]: _, ...selectedProducts } = prev;
+          return selectedProducts;
+        });
+      }
+
+      if (product.categoryId !== categoryId) {
+        set(selectedProductsAtom, (prev) => {
+          const { [product.productId]: _, ...selectedProducts } = prev;
+          return selectedProducts;
+        });
+      }
+    });
+
+    if (!isDefined(products[productId])) {
+      set(selectedProductsAtom, (prev) => ({
+        ...prev,
+        [productId]: currentProduct,
+      }));
+    }
+  }
 );
 
 export const toggleSelectCategoryAtom = atom(
   null,
-  (get, set, { parentId, categoryId }: API.Category) => {
-    const id = parentId === null ? Infinity : parentId;
-    const parent: APP.EntityType = get(entitiesAtom)[id];
+  (get, set, currentCategory: API.Category) => {
+    const { categoryId, parentId } = currentCategory;
+    const categories = get(selectedCategoriesAtom);
 
-    if (!parent) return;
+    set(resetSelectedProductsAtom, {});
 
-    parent.children.forEach((sibling) => {
-      if (sibling.id === categoryId) {
-        set(selectCategoryAtomFamily(sibling.id), (prev) => ({
-          ...prev,
-          isSelected: !prev.isSelected,
-        }));
-      } else {
-        set(selectCategoryAtomFamily(sibling.id), (prev) => ({
-          ...prev,
-          isSelected: false,
-        }));
+    Object.values(categories).forEach((category: API.Category) => {
+      if (category.categoryId === categoryId) {
+        set(selectedCategoriesAtom, (prev) => {
+          const { [category.categoryId]: _, ...selectedProducts } = prev;
+          return selectedProducts;
+        });
+      }
+
+      if (category.parentId !== parentId) {
+        set(selectedCategoriesAtom, (prev) => {
+          const { [category.categoryId]: _, ...selectedProducts } = prev;
+          return selectedProducts;
+        });
       }
     });
+
+    if (!isDefined(categories[categoryId])) {
+      set(selectedCategoriesAtom, (prev) => ({
+        ...prev,
+        [categoryId]: currentCategory,
+      }));
+    }
   }
 );

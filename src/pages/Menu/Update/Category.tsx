@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
-import { FormEvent, useReducer, useState } from "react";
+import { FormEvent, Fragment, useReducer, useState } from "react";
 import { useUpdateAtom } from "jotai/utils";
 import styled from "@emotion/styled";
 
@@ -77,11 +77,12 @@ function UpdateIcon() {
       stroke="currentColor"
       fill="currentColor"
       strokeWidth="0"
-      viewBox="0 0 576 512"
+      viewBox="0 0 12 12"
       height="1em"
       width="1em"
     >
-      <path d="M402.6 83.2l90.2 90.2c3.8 3.8 3.8 10 0 13.8L274.4 405.6l-92.8 10.3c-12.4 1.4-22.9-9.1-21.5-21.5l10.3-92.8L388.8 83.2c3.8-3.8 10-3.8 13.8 0zm162-22.9l-48.8-48.8c-15.2-15.2-39.9-15.2-55.2 0l-35.4 35.4c-3.8 3.8-3.8 10 0 13.8l90.2 90.2c3.8 3.8 10 3.8 13.8 0l35.4-35.4c15.2-15.3 15.2-40 0-55.2zM384 346.2V448H64V128h229.8c3.2 0 6.2-1.3 8.5-3.5l40-40c7.6-7.6 2.2-20.5-8.5-20.5H48C21.5 64 0 85.5 0 112v352c0 26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48V306.2c0-10.7-12.9-16-20.5-8.5l-40 40c-2.2 2.3-3.5 5.3-3.5 8.5z" />
+      <path d="M9.1 12H1.9C0.85 12 0 11.15 0 10.1V2.9C0 1.85 0.85 1 1.9 1H5.5C5.8 1 6 1.2 6 1.5C6 1.8 5.8 2 5.5 2H1.9C1.4 2 1 2.4 1 2.9V10.05C1 10.55 1.4 10.95 1.9 10.95H9.05C9.55 10.95 9.95 10.55 9.95 10.05V6.5C9.95 6.2 10.15 6 10.45 6C10.75 6 10.95 6.2 10.95 6.5V10.1C11 11.15 10.15 12 9.1 12V12Z" />
+      <path d="M3 9.5C2.85 9.5 2.75 9.45 2.65 9.35C2.55 9.25 2.5 9.05 2.5 8.9L3 6.4C3 6.3 3.05 6.2 3.15 6.15L9.15 0.15C9.35 -0.05 9.65 -0.05 9.85 0.15L11.85 2.15C12.05 2.35 12.05 2.65 11.85 2.85L5.85 8.85C5.8 8.9 5.7 8.95 5.6 9L3.1 9.5H3V9.5ZM3.95 6.75L3.65 8.35L5.25 8.05L10.8 2.5L9.5 1.2L3.95 6.75Z" />
     </svg>
   );
 }
@@ -93,7 +94,7 @@ function UpdateCategory({ category }: Props) {
   const [isDialogOpen, toggle] = useReducer((s) => !s, false);
 
   return (
-    <Root>
+    <Fragment>
       <Button onClick={toggle} type="button">
         <IconContainer>
           <UpdateIcon />
@@ -104,30 +105,18 @@ function UpdateCategory({ category }: Props) {
           <UpdateCategoryDialog {...{ category, toggle }} />
         </Dialog>
       )}
-    </Root>
+    </Fragment>
   );
 }
-
-const Root = styled("div")`
-  display: flex;
-  flex-direction: column;
-  align-self: flex-start;
-
-  background: var(--wishlist-color);
-  border-radius: 0.5em;
-`;
 
 const IconContainer = styled("div")`
   display: flex;
   align-self: stretch;
   align-items: center;
 
-  padding: 0.5em;
-
-  color: inherit;
-
-  border-radius: 0.25em;
-  box-shadow: 2px 2px 6px #34a1d1, -2px -2px 6px #83cff2;
+  > svg {
+    color: blue;
+  }
 `;
 
 const Button = styled("button")`
@@ -140,14 +129,10 @@ const Button = styled("button")`
   color: white;
   font-weight: var(--font-bold);
 
-  border: none;
-  background: none;
+  background: white;
+  border: 0.25em solid blue;
+  border-radius: 50%;
   cursor: pointer;
-
-  > svg {
-    color: white
-    margin-right: 0.5em;
-  }
 `;
 
 export default UpdateCategory;

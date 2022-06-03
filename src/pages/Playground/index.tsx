@@ -1,203 +1,131 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
+import { useBoop } from "@app/hooks";
 import styled from "@emotion/styled";
+import { animated } from "@react-spring/web";
 
-import { useCallback, useRef, useState } from "react";
-import { DndProvider, useDrag, useDrop } from "react-dnd";
-import { HTML5Backend } from "react-dnd-html5-backend";
-import type { Identifier, XYCoord } from "dnd-core";
-import { atom, useAtom } from "jotai";
-
-const style = {
-  border: "1px dashed gray",
-  padding: "0.5rem 1rem",
-  marginBottom: ".5rem",
-  backgroundColor: "white",
-  color: "red",
-  cursor: "move",
+const useAngledBoop = (index: number) => {
+  const angle = index * (360 / 3) - 90;
+  const angleInRads = (angle * Math.PI) / 180;
+  const distance = 42;
+  const x = distance * Math.cos(angleInRads);
+  const y = distance * Math.sin(angleInRads);
+  let timing = normalize(index, 0, 4, 450, 600);
+  timing *= 1 + index * 0.22;
+  const friction = normalize(index, 0, 4, 15, 40);
+  const boop = useBoop({
+    x,
+    y,
+    timing,
+    scale: 1.4,
+    springConfig: { tension: 180, friction },
+  });
+  return boop;
 };
 
-const CARDS = [
-  {
-    id: 1,
-    text: "Write a cool JS library",
-  },
-  {
-    id: 2,
-    text: "Make it generic enough",
-  },
-  {
-    id: 3,
-    text: "Write README",
-  },
-  {
-    id: 4,
-    text: "Create some examples",
-  },
-  {
-    id: 5,
-    text: "Spam in Twitter and IRC to promote it (note that this element is taller than the others)",
-  },
-  {
-    id: 6,
-    text: "???",
-  },
-  {
-    id: 7,
-    text: "PROFIT",
-  },
-];
-
-export interface CardProps {
-  id: any;
-  text: string;
-  index: number;
-  moveCard: (dragIndex: number, hoverIndex: number) => void;
-}
-
-interface DragItem {
-  index: number;
-  id: string;
-  type: string;
-}
-
-function Card({ id, text, index, moveCard }: CardProps) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [{ handlerId }, drop] = useDrop<
-    DragItem,
-    void,
-    { handlerId: Identifier | null }
-  >({
-    accept: ItemTypes.CARD,
-    collect(monitor) {
-      return {
-        handlerId: monitor.getHandlerId(),
-      };
-    },
-    hover(item: DragItem, monitor) {
-      if (!ref.current) {
-        return;
-      }
-      const dragIndex = item.index;
-      const hoverIndex = index;
-
-      // Don't replace items with themselves
-      if (dragIndex === hoverIndex) {
-        return;
-      }
-
-      // Determine rectangle on screen
-      const hoverBoundingRect = ref.current?.getBoundingClientRect();
-
-      // Get vertical middle
-      const hoverMiddleY =
-        (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
-
-      // Determine mouse position
-      const clientOffset = monitor.getClientOffset();
-
-      // Get pixels to the top
-      const hoverClientY = (clientOffset as XYCoord).y - hoverBoundingRect.top;
-
-      // Only perform the move when the mouse has crossed half of the items height
-      // When dragging downwards, only move when the cursor is below 50%
-      // When dragging upwards, only move when the cursor is above 50%
-
-      // Dragging downwards
-      if (dragIndex < hoverIndex && hoverClientY < hoverMiddleY) {
-        return;
-      }
-
-      // Dragging upwards
-      if (dragIndex > hoverIndex && hoverClientY > hoverMiddleY) {
-        return;
-      }
-
-      // Time to actually perform the action
-      moveCard(dragIndex, hoverIndex);
-
-      // Note: we're mutating the monitor item here!
-      // Generally it's better to avoid mutations,
-      // but it's good here for the sake of performance
-      // to avoid expensive index searches.
-      // eslint-disable-next-line no-param-reassign
-      item.index = hoverIndex;
+function CircleDemo() {
+  const [c1s, c1t] = useAngledBoop(0);
+  const [c2s, c2t] = useAngledBoop(1);
+  const [c3s, c3t] = useAngledBoop(2);
+  // const [c4s, c4t] = useAngledBoop(3);
+  // const [c5s, c5t] = useAngledBoop(4);
+  const [starStyles, starTrigger] = useBoop({
+    scale: 1.1,
+    rotation: 10,
+    timing: 150,
+    springConfig: {
+      tension: 300,
+      friction: 6,
     },
   });
-
-  const [{ isDragging }, drag] = useDrag({
-    type: ItemTypes.CARD,
-    item: () => ({ id, index }),
-    collect: (monitor: any) => ({
-      isDragging: monitor.isDragging(),
-    }),
-  });
-
-  const opacity = isDragging ? 0 : 1;
-  drag(drop(ref));
   return (
-    <div ref={ref} style={{ ...style, opacity }} data-handler-id={handlerId}>
-      {text}
-    </div>
+    <Wrapper>
+      <Button
+        onMouseEnter={() => {
+          c1t();
+          c2t();
+          c3t();
+          starTrigger();
+        }}
+      >
+        <IconWrapper style={{ transform: starStyles }}>
+          <Star />
+        </IconWrapper>
+      </Button>
+      <Circle style={{ transform: c1s }} />
+      <Circle style={{ transform: c2s }} />
+      <Circle style={{ transform: c3s }} />
+    </Wrapper>
   );
 }
-
-const ItemTypes = {
-  CARD: "card",
+// This helper function is used in the component
+const normalize = (
+  subject: number,
+  currentScaleMin: number,
+  currentScaleMax: number,
+  newScaleMin = 0,
+  newScaleMax = 1
+) => {
+  // FIrst, normalize the value between 0 and 1.
+  const standardNormalization =
+    (subject - currentScaleMin) / (currentScaleMax - currentScaleMin);
+  // Next, transpose that value to our desired scale.
+  return (newScaleMax - newScaleMin) * standardNormalization + newScaleMin;
 };
 
-export interface Item {
-  id: number;
-  text: string;
-}
+const Star = styled("span")`
+  width: 40px;
+  height: 40px;
+  background: red;
+  border-radius: 50%;
+`;
 
-export interface ContainerState {
-  cards: Item[];
-}
+const Wrapper = styled.div`
+  position: relative;
+  width: min-content;
+`;
+const Button = styled("button")`
+  position: relative;
+  z-index: 3;
+  padding: 8px;
+  border-radius: 50%;
+`;
+const IconWrapper = styled(animated.span)`
+  display: block;
+  svg {
+    display: block;
+    stroke: var(--color-text) !important;
+    fill: var(--color-background) !important;
+  }
+`;
+const Circle = styled(animated.div)`
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 8px;
+  height: 8px;
+  margin: auto;
+  border-radius: 50%;
+  background: hsl(50deg, 100%, 48%);
+`;
 
-const cardsAtom = atom(CARDS);
-
-function Container() {
-  const [cards, setCards] = useAtom(cardsAtom);
-
-  const moveCard = useCallback(
-    (dragIndex: number, hoverIndex: number) => {
-      setCards((prevCards: Item[]) => {
-        const dragCard = prevCards[dragIndex];
-        const newCards = [...prevCards];
-        newCards.splice(dragIndex, 1);
-        newCards.splice(hoverIndex, 0, dragCard);
-        return newCards;
-      });
-    },
-    [setCards]
-  );
-
-  const renderCard = useCallback(
-    (card: { id: number; text: string }, index: number): JSX.Element => (
-      <Card
-        key={card.id}
-        index={index}
-        id={card.id}
-        text={card.text}
-        moveCard={moveCard}
-      />
-    ),
-    [moveCard]
-  );
-
-  return <div style={{ width: 400 }}>{cards.map(renderCard)}</div>;
-}
-
-function Playground() {
+function Page() {
   return (
-    <Root>
-      <DndProvider backend={HTML5Backend}>
-        <Container />
-      </DndProvider>
-    </Root>
+    <RootPage>
+      <CircleDemo />
+    </RootPage>
   );
 }
 
-const Root = styled("div")``;
+const RootPage = styled("div")`
+  display: flex;
+  justify-content: center;
+  align-items: center;
 
-export default Playground;
+  height: 100%;
+  width: 100%;
+`;
+
+export default Page;
