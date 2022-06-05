@@ -47,7 +47,7 @@ const Container = styled("main")`
   min-height: 100vh;
   padding: 0.5em;
 
-  font-size: calc(10px + 2vmin);
+  font-size: 14px;
   color: rgb(96, 96, 96);
 
   background-color: rgb(240, 240, 240);

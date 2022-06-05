@@ -36,11 +36,11 @@ const styles = css`
   }
 
   #dialog {
-    font-size: calc(10px + 2vmin);
+    font-size: 14px;
   }
 
   #action {
-    font-size: calc(10px + 2vmin);
+    font-size: 14px;
   }
 `;
 

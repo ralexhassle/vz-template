@@ -168,13 +168,14 @@ const ToggleButton = styled("button")`
   justify-content: space-between;
   flex: 1;
 
-  padding: 0.75em;
+  padding: 1em;
 
   color: inherit;
 
   background: none;
   border: none;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 `;
 
 const Description = styled("span")`

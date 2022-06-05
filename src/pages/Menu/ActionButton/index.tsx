@@ -51,7 +51,7 @@ const useAngledBoop = (index: number) => {
 
   const angle = index * (90 / 2) + 90;
   const angleInRads = (angle * Math.PI) / 180;
-  const distance = 100;
+  const distance = 80;
   const x = distance * Math.cos(angleInRads);
   const y = -distance * Math.sin(angleInRads);
   const friction = normalize(index, 0, 4, 15, 40);
@@ -95,6 +95,48 @@ const ActionContainer = styled(animated.div)`
   z-index: 1;
   top: 0;
   left: 0;
+
+  --delete-color: #f24b41;
+  --enable-color: #41f2a8;
+  --update-color: #41a0f2;
+
+  [data-enable="category"],
+  [data-enable="product"] {
+    padding: 1em;
+
+    color: white;
+    font-weight: var(--font-bold);
+
+    background: white;
+    border: 0.25em solid var(--enable-color);
+    border-radius: 50%;
+  }
+
+  [data-delete="category"],
+  [data-delete="categories"],
+  [data-delete="product"],
+  [data-delete="products"] {
+    padding: 1em;
+
+    color: white;
+    font-weight: var(--font-bold);
+
+    background: white;
+    border-radius: 50%;
+    border: 0.25em solid var(--delete-color);
+  }
+
+  [data-update="category"],
+  [data-update="product"] {
+    padding: 1em;
+
+    color: white;
+    font-weight: var(--font-bold);
+
+    background: white;
+    border: 0.25em solid var(--update-color);
+    border-radius: 50%;
+  }
 `;
 
 const ROTATE = {
@@ -116,30 +158,18 @@ function ActionButton() {
   const renderProductActions = useCallback((products: API.Product[]) => {
     if (products.length === 0) return null;
 
-    if (products.length === 1) {
-      const [product] = products;
-
-      return (
-        <Fragment>
-          <Action index={0}>
-            <Update.Product {...{ product }} />
-          </Action>
-          <Action index={1}>
-            <Delete.Product {...{ product }} />
-          </Action>
-          <Action index={2}>
-            <Enable.Product {...{ products }} />
-          </Action>
-        </Fragment>
-      );
-    }
+    const [product] = products;
+    const disabled = products.length > 1;
 
     return (
       <Fragment>
         <Action index={0}>
-          <Delete.Products {...{ products }} />
+          <Update.Product {...{ product, disabled }} />
         </Action>
         <Action index={1}>
+          <Delete.Product {...{ product }} />
+        </Action>
+        <Action index={2}>
           <Enable.Product {...{ products }} />
         </Action>
       </Fragment>
@@ -149,30 +179,18 @@ function ActionButton() {
   const renderCategoriesActions = useCallback((categories: API.Category[]) => {
     if (categories.length === 0) return null;
 
-    if (categories.length === 1) {
-      const [category] = categories;
-
-      return (
-        <Fragment>
-          <Action index={0}>
-            <Update.Category {...{ category }} />
-          </Action>
-          <Action index={1}>
-            <Delete.Category {...{ category }} />
-          </Action>
-          <Action index={2}>
-            <Enable.Category {...{ categories }} />
-          </Action>
-        </Fragment>
-      );
-    }
+    const [category] = categories;
+    const disabled = categories.length > 1;
 
     return (
       <Fragment>
         <Action index={0}>
-          <Delete.Categories {...{ categories }} />
+          <Update.Category {...{ category, disabled }} />
         </Action>
         <Action index={1}>
+          <Delete.Category {...{ category }} />
+        </Action>
+        <Action index={2}>
           <Enable.Category {...{ categories }} />
         </Action>
       </Fragment>
@@ -198,8 +216,8 @@ const Wrapper = styled.div`
 `;
 
 export const Button = styled("div")`
-  height: 3em;
-  width: 3em;
+  height: 5em;
+  width: 5em;
 
   color: white;
   background-color: #41b9ef;

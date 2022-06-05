@@ -61,6 +61,7 @@ const SelectIconContainer = styled("div")`
 
 const Button = styled("button")`
   display: flex;
+  align-items: center;
   flex: 1;
 
   padding: 0;
@@ -70,6 +71,7 @@ const Button = styled("button")`
   background: none;
   border: none;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 
   &[data-is-selected="true"] {
     cursor: grab;

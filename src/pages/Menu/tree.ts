@@ -3,7 +3,7 @@ import { atom } from "jotai";
 import { atomFamily } from "jotai/utils";
 
 import { client } from "@app/config";
-import { isDefined, isEmpty } from "@utils";
+import { isDefined } from "@utils";
 
 export const menuAtom = atom(async () => client.Menu.getMenu());
 
@@ -17,6 +17,10 @@ export const entitiesAtom = atom<Collection<APP.EntityType>>({});
 
 export const selectedProductsAtom = atom<Collection<API.Product>>({});
 export const selectedCategoriesAtom = atom<Collection<API.Category>>({});
+
+export const getSelectedProductCountAtom = atom(
+  (get) => Object.values(get(selectedProductsAtom)).length
+);
 
 export const resetSelectedCategoriesAtom = atom(
   (get) => get(selectedCategoriesAtom),

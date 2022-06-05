@@ -8,6 +8,7 @@ import type { Identifier, XYCoord } from "dnd-core";
 
 import Like from "../Like";
 import Select from "../Select";
+import DragIndicator from "./DragIndicator";
 
 import {
   productsAtomFamily,
@@ -249,26 +250,35 @@ function EditableProduct({ id, order, move }: EditableProductProps) {
       data-handler-id={handlerId}
       data-is-dragging={isDragging}
       data-product-level={level}
+      data-product-selected={isSelected}
     >
       <Select.Product {...{ product, isSelected }}>
         <ProductBody {...{ product }} />
       </Select.Product>
+      <DragIndicator {...{ isSelected }} />
     </ProductContainer>
   );
 }
 
 const ProductContainer = styled("div")`
   display: flex;
+  align-items: center;
 
   user-select: none;
   cursor: pointer;
+  border-radius: 0.5em;
+
+  transition: background-color 1000ms ease-out;
 
   > &:not(:last-child) {
     margin-right: 0.25em;
   }
 
+  &[data-product-selected="true"][data-is-dragging="true"] {
+    background-color: #41d2f22b;
+  }
+
   &[data-is-dragging="true"] {
-    opacity: 0.3;
   }
 `;
 
