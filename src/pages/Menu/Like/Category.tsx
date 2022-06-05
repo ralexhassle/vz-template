@@ -28,7 +28,7 @@ function LikeCategory({ category }: Props) {
   if (count === 0) return null;
 
   return (
-    <Container data-is-selected={count > 0}>
+    <Container data-has-likes={count > 0} data-like="category">
       <Icon />
     </Container>
   );
@@ -41,8 +41,7 @@ const Container = styled("div")`
   background: none;
   cursor: pointer;
 
-  &[data-is-selected="true"] {
-    color: var(--like-category-color);
+  &[data-has-likes="true"] {
     opacity: 1;
   }
 

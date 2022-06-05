@@ -110,8 +110,7 @@ export const likeCategoryCount = atomFamily(
 );
 
 export const likeProductAtomFamily = atomFamily(
-  (productId: API.Product["productId"]) =>
-    atom({ isSelected: false, productId }),
+  (productId: API.Product["productId"]) => atom({ isLiked: false, productId }),
   (a, b) => a === b
 );
 
@@ -292,14 +291,14 @@ export const toggleLikeProductAtom = atom(
 
     set(likeProductAtomFamily(product.productId), {
       ...subject,
-      isSelected: !subject.isSelected,
+      isLiked: !subject.isLiked,
     });
 
     const ancestors = getAncestors(get(categoriesAtom), product.categoryId);
 
     ancestors.forEach((ancestor: API.Category) => {
       set(likeCategoryCount(ancestor.categoryId), (prev) => {
-        if (subject.isSelected) return { ...prev, count: prev.count - 1 };
+        if (subject.isLiked) return { ...prev, count: prev.count - 1 };
         return { ...prev, count: prev.count + 1 };
       });
     });

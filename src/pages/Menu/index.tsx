@@ -39,73 +39,69 @@ const RootContainer = styled("div")`
 
   --wishlist-color: #41b9ef;
 
-  --like-product-color: var(--wishlist-color);
-  --like-category-color: var(--wishlist-color);
-
   [data-category] {
     border-radius: 0.5em;
   }
 
   [data-category-level="0"] {
     color: var(--wishlist-color);
+  }
 
-    --create-category-icon: rgb(228, 224, 225);
-    --create-category-color: var(--wishlist-color);
+  [data-like="category"][data-has-likes="true"] {
+    color: var(--wishlist-color);
+  }
 
-    --create-product-icon: var(--wishlist-color);
-    --create-product-color: var(--wishlist-color);
+  [data-selected="category"] {
+    color: var(--wishlist-color);
+  }
+
+  [data-selected="product"] {
+    color: var(--wishlist-color);
   }
 
   [data-category-level="1"] {
     background: #606060;
     color: white;
 
-    --create-category-icon: rgb(228, 224, 225);
-    --create-category-color: white;
+    [data-like="product"][data-is-liked="true"] {
+      color: var(--wishlist-color);
+      box-shadow: inset 2px 2px 6px #4c4c4c, inset -2px -2px 6px #868686;
+    }
 
-    --create-product-icon: var(--wishlist-color);
-    --create-product-color: white;
-
-    --select-category: 2px 2px 6px #4c4c4c, -2px -2px 6px #868686;
-    --unselect-category: inset 2px 2px 6px #4c4c4c, inset -2px -2px 6px #868686;
-
-    --select-product: 2px 2px 6px #4c4c4c, -2px -2px 6px #868686;
-    --unselect-product: inset 2px 2px 6px #4c4c4c, inset -2px -2px 6px #868686;
-
-    --like-product: 2px 2px 6px #4c4c4c, -2px -2px 6px #868686;
-    --unlike-product: inset 2px 2px 6px #4c4c4c, inset -2px -2px 6px #868686;
+    [data-like="product"][data-is-liked="false"] {
+      color: rgb(228, 224, 225);
+      box-shadow: 2px 2px 6px #4c4c4c, -2px -2px 6px #868686;
+    }
   }
 
   [data-category-level="2"] {
     background: #f0f0f0;
     color: rgb(96, 96, 96);
 
-    --create-category-icon: rgb(228, 224, 225);
-    --create-category-color: var(--wishlist-color);
+    [data-like="product"][data-is-liked="true"] {
+      color: var(--wishlist-color);
+      box-shadow: inset 2px 2px 6px #bebebe61, inset -2px -2px 6px #ffffff;
+    }
 
-    --create-product-icon: var(--wishlist-color);
-    --create-product-color: var(--wishlist-color);
-
-    --select-category: 2px 2px 6px #bebebe61, -2px -2px 6px #ffffff;
-    --unselect-category: inset 2px 2px 6px #bebebe61,
-      inset -2px -2px 6px #ffffff;
-
-    --select-product: 2px 2px 6px #bebebe61, -2px -2px 6px #ffffff;
-    --unselect-product: inset 2px 2px 6px #bebebe61, inset -2px -2px 6px #ffffff;
-
-    --like-product: 2px 2px 6px #bebebe61, -2px -2px 6px #ffffff;
-    --unlike-product: inset 2px 2px 6px #bebebe61, inset -2px -2px 6px #ffffff;
+    [data-like="product"][data-is-liked="false"] {
+      color: rgb(228, 224, 225);
+      box-shadow: 2px 2px 6px #bebebe61, -2px -2px 6px #ffffff;
+    }
   }
 
   [data-category-level="3"] {
     background: white;
     color: rgb(96, 96, 96);
 
-    --create-category-icon: var(--wishlist-color);
-    --create-category-color: var(--wishlist-color);
+    [data-like="product"][data-is-liked="true"] {
+      color: var(--wishlist-color);
+      box-shadow: inset 2px 2px 6px #bebebe61, inset -2px -2px 6px #ffffff;
+    }
 
-    --create-product-icon: var(--wishlist-color);
-    --create-product-color: var(--wishlist-color);
+    [data-like="product"][data-is-liked="false"] {
+      color: var(--wishlist-color);
+      box-shadow: 2px 2px 6px #bebebe61, -2px -2px 6px #ffffff;
+    }
   }
 
   > *:not(:last-child) {

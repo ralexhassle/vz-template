@@ -36,8 +36,11 @@ function SelectProduct({ product, isSelected, children }: Props) {
   }, [isSelected, setProduct, product]);
 
   return (
-    <Button onClick={toggleSelect} data-is-selected={isSelected}>
-      <SelectIconContainer data-is-selected={isSelected}>
+    <Button onClick={toggleSelect}>
+      <SelectIconContainer
+        data-is-selected={isSelected}
+        data-selected="product"
+      >
         <Icon {...{ isSelected }} />
       </SelectIconContainer>
       {children}
@@ -53,13 +56,7 @@ const SelectIconContainer = styled("div")`
   padding: 0.5em;
   margin-right: 0.5em;
 
-  color: var(--like-product-color);
-
   border-radius: 0.25em;
-
-  &[data-is-selected="true"] {
-    color: var(--like-product-color);
-  }
 `;
 
 const Button = styled("button")`

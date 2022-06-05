@@ -1,6 +1,6 @@
 import { DragSourceMonitor, useDrag, useDrop } from "react-dnd";
-import { useCallback, useRef } from "react";
-import { atom, useAtom, useAtomValue } from "jotai";
+import { useRef } from "react";
+import { atom, useAtomValue } from "jotai";
 import { atomFamily } from "jotai/utils";
 import styled from "@emotion/styled";
 

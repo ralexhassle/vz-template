@@ -26,7 +26,7 @@ interface Props {
 }
 function LikeProduct({ product, children }: Props) {
   const toggle = useUpdateAtom(toggleLikeProductAtom);
-  const { isSelected } = useAtomValue(likeProductAtomFamily(product.productId));
+  const { isLiked } = useAtomValue(likeProductAtomFamily(product.productId));
 
   const onClick = useCallback(() => {
     toggle(product);
@@ -34,7 +34,7 @@ function LikeProduct({ product, children }: Props) {
 
   return (
     <Button onClick={onClick}>
-      <LikeIconContainer data-is-selected={isSelected}>
+      <LikeIconContainer data-is-liked={isLiked} data-like="product">
         <Icon />
       </LikeIconContainer>
       {children}
@@ -50,15 +50,7 @@ const LikeIconContainer = styled("div")`
   padding: 0.5em;
   margin-right: 0.5em;
 
-  color: rgb(228, 224, 225);
-
   border-radius: 0.25em;
-  box-shadow: var(--like-product);
-
-  &[data-is-selected="true"] {
-    color: var(--like-product-color);
-    box-shadow: var(--unlike-product);
-  }
 `;
 
 const Button = styled("button")`
