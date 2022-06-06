@@ -3,6 +3,7 @@ import { useUpdateAtom } from "jotai/utils";
 import { useCallback } from "react";
 
 import { deleteProductAtom } from "../tree";
+import { toastAtom } from "../Toast/store";
 
 function DeleteIcon() {
   return (
@@ -22,10 +23,14 @@ interface Props {
 }
 function DeleteProducts({ products }: Props) {
   const deleteProduct = useUpdateAtom(deleteProductAtom);
+  const toast = useUpdateAtom(toastAtom);
 
   const onClick = useCallback(() => {
-    products.forEach((product) => deleteProduct(product));
-  }, [products, deleteProduct]);
+    products.forEach((product) => {
+      deleteProduct(product);
+      toast({ message: `Product ${product.label} deleted`, type: "success" });
+    });
+  }, [products, deleteProduct, toast]);
 
   return (
     <Button onClick={onClick} type="button" data-delete="products">

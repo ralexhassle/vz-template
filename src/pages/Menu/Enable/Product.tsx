@@ -1,6 +1,7 @@
 import styled from "@emotion/styled";
 import { useUpdateAtom } from "jotai/utils";
 import { useCallback } from "react";
+import { toastAtom } from "../Toast/store";
 
 import { updateProductAtom } from "../tree";
 
@@ -18,12 +19,14 @@ interface Props {
 }
 function EnableProduct({ products }: Props) {
   const update = useUpdateAtom(updateProductAtom);
+  const toast = useUpdateAtom(toastAtom);
 
   const onClick = useCallback(() => {
-    products.forEach((product) =>
-      update({ ...product, enabled: !product.enabled })
-    );
-  }, [products, update]);
+    products.forEach((product) => {
+      update({ ...product, enabled: !product.enabled });
+      toast({ message: `Product ${product.label} enabled`, type: "success" });
+    });
+  }, [products, update, toast]);
 
   return (
     <Button onClick={onClick} type="button" data-enable="product">

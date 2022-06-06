@@ -1,13 +1,14 @@
 import { DragSourceMonitor, useDrag, useDrop } from "react-dnd";
 import { useRef } from "react";
 import { atom, useAtomValue } from "jotai";
-import { atomFamily } from "jotai/utils";
+import { atomFamily, useUpdateAtom } from "jotai/utils";
 import styled from "@emotion/styled";
 
 import type { Identifier, XYCoord } from "dnd-core";
 
 import Like from "../Like";
 import Select from "../Select";
+import { toastAtom } from "../Toast/store";
 import DragIndicator from "./DragIndicator";
 
 import {
@@ -199,7 +200,9 @@ interface EditableProductProps {
  */
 function EditableProduct({ id, order, move }: EditableProductProps) {
   const ref = useRef<HTMLDivElement>(null);
+  const orderRef = useRef(order);
 
+  const toast = useUpdateAtom(toastAtom);
   const product = useAtomValue(productsAtomFamily(id));
   const level = useAtomValue(levelAtomFamily(product.categoryId));
   const isSelected = useAtomValue(
@@ -236,6 +239,12 @@ function EditableProduct({ id, order, move }: EditableProductProps) {
   const [{ isDragging }, drag] = useDrag({
     type: "product",
     canDrag: isSelected,
+    end: (item) => {
+      if (item.order !== orderRef.current) {
+        orderRef.current = order;
+        toast({ type: "success", message: "Déplacement effectué" });
+      }
+    },
     item: () => ({ id, order, type: "product", parentId: product.categoryId }),
     collect: (monitor: DragSourceMonitor<APP.DragItem>) => ({
       isDragging: monitor.isDragging(),

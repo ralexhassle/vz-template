@@ -167,7 +167,7 @@ function ActionButton() {
           <Update.Product {...{ product, disabled }} />
         </Action>
         <Action index={1}>
-          <Delete.Product {...{ product }} />
+          <Delete.Products {...{ products }} />
         </Action>
         <Action index={2}>
           <Enable.Product {...{ products }} />
@@ -188,7 +188,7 @@ function ActionButton() {
           <Update.Category {...{ category, disabled }} />
         </Action>
         <Action index={1}>
-          <Delete.Category {...{ category }} />
+          <Delete.Categories {...{ categories }} />
         </Action>
         <Action index={2}>
           <Enable.Category {...{ categories }} />

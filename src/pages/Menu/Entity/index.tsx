@@ -58,7 +58,7 @@ function EditableEntities({ parentId }: EditableEntitiesProps) {
         const newChildren = [...prev];
         newChildren.splice(dragIndex, 1);
         newChildren.splice(hoverIndex, 0, dragItem);
-        return newChildren;
+        return newChildren.map((child, index) => ({ ...child, order: index }));
       });
     },
     [setSiblings]
