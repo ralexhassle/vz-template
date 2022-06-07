@@ -17,6 +17,7 @@ import {
   levelAtomFamily,
   isCategorySelectedAtomFamily,
 } from "../tree";
+import DragIndicator from "./DragIndicator";
 
 interface CategoryProps {
   id: API.Category["categoryId"];
@@ -114,27 +115,34 @@ function EditableCategory(props: EditableCategoryProps) {
   drag(drop(ref));
 
   return (
-    <CategoryContainer
-      ref={ref}
-      data-handler-id={handlerId}
-      data-is-dragging={isDragging}
-      data-category-level={level}
-      data-category
-    >
-      <CategorHeader>
-        {!isOpen && <Select.Category {...{ category, isSelected }} />}
-        <ToggleButton onClick={toggleOpen} type="button">
-          <Description>
-            <span>{category.description}</span>
-            {!category.enabled && <Unavalaible>Indisponible</Unavalaible>}
-          </Description>
-          <ToggleIndicator isOpen={isOpen} />
-        </ToggleButton>
-      </CategorHeader>
-      {isOpen && <Children>{children}</Children>}
-    </CategoryContainer>
+    <CategoryRow ref={ref} data-handler-id={handlerId}>
+      <CategoryContainer
+        data-category
+        data-is-dragging={isDragging}
+        data-category-level={level}
+        data-category-selected={isSelected}
+      >
+        <CategorHeader>
+          {!isOpen && <Select.Category {...{ category, isSelected }} />}
+          <ToggleButton onClick={toggleOpen} type="button">
+            <Description>
+              <span>{category.description}</span>
+              {!category.enabled && <Unavalaible>Indisponible</Unavalaible>}
+            </Description>
+            <ToggleIndicator isOpen={isOpen} />
+          </ToggleButton>
+        </CategorHeader>
+        {isOpen && <Children>{children}</Children>}
+      </CategoryContainer>
+      {!isOpen && <DragIndicator {...{ isSelected }} />}
+    </CategoryRow>
   );
 }
+
+const CategoryRow = styled("div")`
+  display: flex;
+  align-items: center;
+`;
 
 const Children = styled("div")`
   display: flex;
@@ -194,9 +202,12 @@ const CategorHeader = styled("div")`
 const CategoryContainer = styled("div")`
   display: flex;
   flex-direction: column;
+  flex: 1;
 
-  &[data-is-dragging="true"] {
-    opacity: 0.5;
+  transition: background-color 1000ms ease-out;
+
+  &[data-category-selected="true"][data-is-dragging="true"] {
+    background-color: rgb(211, 230, 239);
   }
 `;
 

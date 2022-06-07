@@ -1,20 +1,20 @@
 import { DragSourceMonitor, useDrag, useDrop } from "react-dnd";
 import { useRef } from "react";
 import { atom, useAtomValue } from "jotai";
-import { atomFamily, useUpdateAtom } from "jotai/utils";
+import { atomFamily } from "jotai/utils";
 import styled from "@emotion/styled";
 
 import type { Identifier, XYCoord } from "dnd-core";
 
 import Like from "../Like";
 import Select from "../Select";
-import { toastAtom } from "../Toast/store";
 import DragIndicator from "./DragIndicator";
 
 import {
   productsAtomFamily,
   levelAtomFamily,
   isProductSelectedAtomFamily,
+  isLoadingAtomFamily,
 } from "../tree";
 
 const getFrenchPrice = (value: number) => {
@@ -200,11 +200,10 @@ interface EditableProductProps {
  */
 function EditableProduct({ id, order, move }: EditableProductProps) {
   const ref = useRef<HTMLDivElement>(null);
-  const orderRef = useRef(order);
 
-  const toast = useUpdateAtom(toastAtom);
   const product = useAtomValue(productsAtomFamily(id));
   const level = useAtomValue(levelAtomFamily(product.categoryId));
+  const { isLoading } = useAtomValue(isLoadingAtomFamily(product.categoryId));
   const isSelected = useAtomValue(
     isProductSelectedAtomFamily(product.productId)
   );
@@ -238,13 +237,7 @@ function EditableProduct({ id, order, move }: EditableProductProps) {
 
   const [{ isDragging }, drag] = useDrag({
     type: "product",
-    canDrag: isSelected,
-    end: (item) => {
-      if (item.order !== orderRef.current) {
-        orderRef.current = order;
-        toast({ type: "success", message: "Déplacement effectué" });
-      }
-    },
+    canDrag: isSelected && !isLoading,
     item: () => ({ id, order, type: "product", parentId: product.categoryId }),
     collect: (monitor: DragSourceMonitor<APP.DragItem>) => ({
       isDragging: monitor.isDragging(),
@@ -260,11 +253,12 @@ function EditableProduct({ id, order, move }: EditableProductProps) {
       data-is-dragging={isDragging}
       data-product-level={level}
       data-product-selected={isSelected}
+      data-product-loading={isLoading}
     >
-      <Select.Product {...{ product, isSelected }}>
+      <Select.Product {...{ product, isSelected, isLoading }}>
         <ProductBody {...{ product }} />
       </Select.Product>
-      <DragIndicator {...{ isSelected }} />
+      {!isLoading && <DragIndicator {...{ isSelected }} />}
     </ProductContainer>
   );
 }
@@ -285,9 +279,6 @@ const ProductContainer = styled("div")`
 
   &[data-product-selected="true"][data-is-dragging="true"] {
     background-color: #41d2f22b;
-  }
-
-  &[data-is-dragging="true"] {
   }
 `;
 

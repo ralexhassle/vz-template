@@ -10,20 +10,16 @@ export enum ActionType {
   END_PAUSE,
 }
 
+type Collection<T> = { [key: string]: T };
+
 export interface Toast {
-  message: string;
-  type: "error" | "success";
-}
-
-export interface ToastItem extends Toast {
   key: string;
+  message: string;
+  type: "error" | "success" | "loading";
 }
 
-export const toaster = atom<ToastItem[]>([]);
+export const toaster = atom<Collection<Toast>>({});
 
-export const toastAtom = atom(null, (get, set, { message, type }: Toast) => {
-  console.log(message);
-  const key = `${new Date().valueOf()}${message}`;
-  const toast = { key, message, type };
-  set(toaster, (prev) => [...prev, toast]);
+export const toastAtom = atom(null, (_get, set, toast: Toast) => {
+  set(toaster, (prev) => ({ ...prev, [toast.key]: toast }));
 });

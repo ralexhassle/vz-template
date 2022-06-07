@@ -1,8 +1,11 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
 import { Fragment, useCallback } from "react";
 import { useAtomValue, useAtom } from "jotai";
+import { useUpdateAtom } from "jotai/utils";
+import { useMutation } from "react-query";
 
 import { isEmpty } from "@app/utils";
+import { client } from "@app/config";
 
 import Create from "../Create";
 import Product from "./Product";
@@ -13,6 +16,7 @@ import {
   childrenAtomFamily,
   levelAtomFamily,
 } from "../tree";
+import { toastAtom } from "../Toast/store";
 
 const ROOT_ENTITY_ID = Infinity;
 
@@ -50,6 +54,14 @@ interface EditableEntitiesProps {
 function EditableEntities({ parentId }: EditableEntitiesProps) {
   const children = useAtomValue(getChildrenAtomFamily(parentId));
   const [siblings, setSiblings] = useAtom(childrenAtomFamily(children));
+  const toast = useUpdateAtom(toastAtom);
+
+  const { mutate } = useMutation([parentId], client.Menu.patchOrderProducts, {
+    onSuccess: () => {
+      const message = "Produit déplacé !";
+      toast({ key: String(parentId), message, type: "success" });
+    },
+  });
 
   const move = useCallback(
     (dragIndex: number, hoverIndex: number) => {
@@ -58,10 +70,12 @@ function EditableEntities({ parentId }: EditableEntitiesProps) {
         const newChildren = [...prev];
         newChildren.splice(dragIndex, 1);
         newChildren.splice(hoverIndex, 0, dragItem);
+        toast({ key: String(parentId), message: "", type: "loading" });
+        mutate(newChildren.map(({ id, order }) => ({ productId: id, order })));
         return newChildren.map((child, index) => ({ ...child, order: index }));
       });
     },
-    [setSiblings]
+    [setSiblings, mutate, toast, parentId]
   );
 
   const renderSibling = useCallback(

@@ -374,3 +374,8 @@ export const toggleSelectCategoryAtom = atom(
     }
   }
 );
+
+export const isLoadingAtomFamily = atomFamily(
+  (id: number) => atom({ id, isLoading: false }),
+  (a, b) => a === b
+);

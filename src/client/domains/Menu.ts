@@ -37,6 +37,22 @@ class Menu extends Domain {
       }, 500);
     });
   }
+
+  public async deleteProducts(products: API.Product[]) {
+    return new Promise<API.Product[]>((resolve) => {
+      setTimeout(() => {
+        resolve(products);
+      }, 1000);
+    });
+  }
+
+  public async patchOrderProducts(products: API.OrderProduct[]) {
+    return new Promise<API.Product[]>((resolve) => {
+      setTimeout(() => {
+        resolve(products);
+      }, 1000);
+    });
+  }
 }
 
 export default Menu;

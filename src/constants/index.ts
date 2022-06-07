@@ -22,5 +22,5 @@ export const PORTALS = {
   FOOTER: { id: PORTAL_ID.FOOTER, zIndex: 1 },
   DIALOG: { id: PORTAL_ID.DIALOG, zIndex: 999 },
   ACTION: { id: PORTAL_ID.ACTION, zIndex: 998 },
-  TOAST: { id: PORTAL_ID.TOAST, zIndex: 998 },
+  TOAST: { id: PORTAL_ID.TOAST, zIndex: 9999 },
 } as const;

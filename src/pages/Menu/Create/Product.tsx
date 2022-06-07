@@ -43,6 +43,7 @@ const postProductAtom = atom(
       set(postProductStatusAtom, STATUS.RESOLVED);
       set(createProductAtom, product);
       set(toastAtom, {
+        key: String(product.productId),
         type: "success",
         message: `Product ${product.label} added`,
       });

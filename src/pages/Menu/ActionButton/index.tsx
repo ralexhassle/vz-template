@@ -159,6 +159,7 @@ function ActionButton() {
     if (products.length === 0) return null;
 
     const [product] = products;
+    const { categoryId } = product;
     const disabled = products.length > 1;
 
     return (
@@ -167,7 +168,10 @@ function ActionButton() {
           <Update.Product {...{ product, disabled }} />
         </Action>
         <Action index={1}>
-          <Delete.Products {...{ products }} />
+          <Delete.Products
+            {...{ products, categoryId }}
+            key={products.length}
+          />
         </Action>
         <Action index={2}>
           <Enable.Product {...{ products }} />
