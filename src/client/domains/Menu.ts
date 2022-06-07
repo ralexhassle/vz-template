@@ -46,6 +46,14 @@ class Menu extends Domain {
     });
   }
 
+  public async deleteCategories(products: API.Category[]) {
+    return new Promise<API.Category[]>((resolve) => {
+      setTimeout(() => {
+        resolve(products);
+      }, 1000);
+    });
+  }
+
   public async patchOrderProducts(products: API.OrderProduct[]) {
     return new Promise<API.Product[]>((resolve) => {
       setTimeout(() => {

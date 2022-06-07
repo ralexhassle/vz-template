@@ -1,8 +1,12 @@
-import { useCallback } from "react";
+import { useCallback, useReducer } from "react";
 import { useUpdateAtom } from "jotai/utils";
+import { useMutation } from "react-query";
 import styled from "@emotion/styled";
 
-import { deleteCategoryAtom } from "../tree";
+import { client } from "@app/config";
+
+import { deleteCategoryAtom, isLoadingAtomFamily } from "../tree";
+import { toastAtom } from "../Toast/store";
 
 function DeleteIcon() {
   return (
@@ -17,15 +21,34 @@ function DeleteIcon() {
   );
 }
 
+function makeId(categories: API.Category[]) {
+  return categories.map((category) => category.categoryId).join(",");
+}
+
 interface Props {
   categories: API.Category[];
+  parentId: API.Category["parentId"];
 }
-function DeleteCategories({ categories }: Props) {
+function DeleteCategories({ categories, parentId }: Props) {
+  const [key] = useReducer((s) => s, makeId(categories));
+  const setLoading = useUpdateAtom(isLoadingAtomFamily(parentId));
   const deleteCategory = useUpdateAtom(deleteCategoryAtom);
+  const toast = useUpdateAtom(toastAtom);
+
+  const { mutate } = useMutation([key], client.Menu.deleteCategories, {
+    onSuccess: (data) => {
+      setLoading({ id: parentId, isLoading: false });
+      const message = "Categories supprimées !";
+      toast({ key, message, type: "success" });
+      data.forEach((category) => deleteCategory(category));
+    },
+  });
 
   const onClick = useCallback(() => {
-    categories.forEach((category) => deleteCategory(category));
-  }, [categories, deleteCategory]);
+    setLoading({ id: parentId, isLoading: true });
+    toast({ key, message: "Suppression en cours...", type: "loading" });
+    mutate(categories);
+  }, [mutate, categories, toast, setLoading, parentId, key]);
 
   return (
     <Button onClick={onClick} type="button" data-delete="categories">

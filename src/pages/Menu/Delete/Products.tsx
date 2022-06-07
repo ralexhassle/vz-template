@@ -24,10 +24,6 @@ function makeId(products: API.Product[]) {
   return products.map((product) => product.productId).join(",");
 }
 
-function generateId(products: API.Product[]) {
-  return products.map((product) => product.productId).join(",");
-}
-
 interface Props {
   products: API.Product[];
   categoryId: API.Product["categoryId"];
@@ -49,7 +45,7 @@ function DeleteProducts({ products, categoryId }: Props) {
 
   const onClick = useCallback(() => {
     setLoading({ id: categoryId, isLoading: true });
-    toast({ key, message: "Deleting...", type: "loading" });
+    toast({ key, message: "Suppression en cours...", type: "loading" });
     mutate(products);
   }, [products, mutate, key, toast, categoryId, setLoading]);
 

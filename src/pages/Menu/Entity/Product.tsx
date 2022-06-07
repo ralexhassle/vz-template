@@ -192,13 +192,14 @@ function Product({ id }: ProductProps) {
 interface EditableProductProps {
   id: API.Product["productId"];
   order: number;
+  onDragEnd: (type: "product" | "category") => void;
   move: (dragIndex: number, hoverIndex: number) => void;
 }
 /**
  * A "editable "Product" is a node leaf in the tree. It does not
  * have any children. It can be selected, moved, updated or deleted.
  */
-function EditableProduct({ id, order, move }: EditableProductProps) {
+function EditableProduct({ id, order, move, onDragEnd }: EditableProductProps) {
   const ref = useRef<HTMLDivElement>(null);
 
   const product = useAtomValue(productsAtomFamily(id));
@@ -238,6 +239,7 @@ function EditableProduct({ id, order, move }: EditableProductProps) {
   const [{ isDragging }, drag] = useDrag({
     type: "product",
     canDrag: isSelected && !isLoading,
+    end: () => onDragEnd("product"),
     item: () => ({ id, order, type: "product", parentId: product.categoryId }),
     collect: (monitor: DragSourceMonitor<APP.DragItem>) => ({
       isDragging: monitor.isDragging(),

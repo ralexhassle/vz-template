@@ -44,9 +44,7 @@ const useAngledBoop = (index: number) => {
   const [isBooped, setIsBooped] = useState(false);
 
   useEffect(() => {
-    if (!isBooped) {
-      setIsBooped(true);
-    }
+    if (!isBooped) setIsBooped(true);
   }, [isBooped]);
 
   const angle = index * (90 / 2) + 90;
@@ -169,8 +167,8 @@ function ActionButton() {
         </Action>
         <Action index={1}>
           <Delete.Products
-            {...{ products, categoryId }}
             key={products.length}
+            {...{ products, categoryId }}
           />
         </Action>
         <Action index={2}>
@@ -184,6 +182,7 @@ function ActionButton() {
     if (categories.length === 0) return null;
 
     const [category] = categories;
+    const { parentId } = category;
     const disabled = categories.length > 1;
 
     return (
@@ -192,7 +191,10 @@ function ActionButton() {
           <Update.Category {...{ category, disabled }} />
         </Action>
         <Action index={1}>
-          <Delete.Categories {...{ categories }} />
+          <Delete.Categories
+            key={categories.length}
+            {...{ categories, parentId }}
+          />
         </Action>
         <Action index={2}>
           <Enable.Category {...{ categories }} />

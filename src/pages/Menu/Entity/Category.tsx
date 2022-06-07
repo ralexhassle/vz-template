@@ -16,6 +16,7 @@ import {
   toggleAtomFamily,
   levelAtomFamily,
   isCategorySelectedAtomFamily,
+  isLoadingAtomFamily,
 } from "../tree";
 import DragIndicator from "./DragIndicator";
 
@@ -53,6 +54,7 @@ function Category({ id, children }: CategoryProps) {
 interface EditableCategoryProps {
   id: API.Category["categoryId"];
   order: number;
+  onDragEnd: (type: "product" | "category") => void;
   move: (dragIndex: number, hoverIndex: number) => void;
   children: React.ReactNode;
 }
@@ -62,12 +64,13 @@ interface EditableCategoryProps {
  * It can be selected, moved, updated or deleted.
  */
 function EditableCategory(props: EditableCategoryProps) {
-  const { id, order, move, children } = props;
+  const { id, order, move, children, onDragEnd } = props;
   const ref = useRef<HTMLDivElement>(null);
 
   const [{ isOpen }, toggle] = useAtom(toggleAtomFamily(id));
   const category = useAtomValue(categoriesAtomFamily(id));
   const level = useAtomValue(levelAtomFamily(category.categoryId));
+  const { isLoading } = useAtomValue(isLoadingAtomFamily(category.parentId));
   const isSelected = useAtomValue(
     isCategorySelectedAtomFamily(category.categoryId)
   );
@@ -101,8 +104,9 @@ function EditableCategory(props: EditableCategoryProps) {
 
   const [{ isDragging }, drag] = useDrag({
     type: String(category.parentId),
-    canDrag: isSelected && !isOpen,
+    canDrag: isSelected && !isOpen && !isLoading,
     item: () => ({ id, order, type: "category" }),
+    end: () => onDragEnd("category"),
     collect: (monitor: DragSourceMonitor<APP.DragItem>) => ({
       isDragging: monitor.isDragging(),
     }),
@@ -123,7 +127,9 @@ function EditableCategory(props: EditableCategoryProps) {
         data-category-selected={isSelected}
       >
         <CategorHeader>
-          {!isOpen && <Select.Category {...{ category, isSelected }} />}
+          {!isOpen && (
+            <Select.Category {...{ category, isSelected, isLoading }} />
+          )}
           <ToggleButton onClick={toggleOpen} type="button">
             <Description>
               <span>{category.description}</span>
@@ -134,7 +140,7 @@ function EditableCategory(props: EditableCategoryProps) {
         </CategorHeader>
         {isOpen && <Children>{children}</Children>}
       </CategoryContainer>
-      {!isOpen && <DragIndicator {...{ isSelected }} />}
+      {!isOpen && !isLoading && <DragIndicator {...{ isSelected }} />}
     </CategoryRow>
   );
 }
