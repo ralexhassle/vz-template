@@ -2,6 +2,7 @@ import { animated, config, useSpring } from "@react-spring/web";
 import styled from "@emotion/styled";
 
 import { PORTALS } from "@constants";
+import { useScrollLock } from "@app/hooks";
 
 import Portal from "../Portal";
 
@@ -31,6 +32,8 @@ interface Props {
 }
 
 function Dialog({ message, children, dismiss }: Props) {
+  useScrollLock();
+
   const { scale } = useSpring<{ scale: number }>({
     scale: 1,
     from: { scale: 0.4 },
@@ -98,6 +101,9 @@ const DialogContainer = styled("div")`
   flex-direction: column;
   justify-content: center;
   align-items: center;
+
+  overscroll-behavior-y: contain;
+  overflow: auto;
 
   position: fixed;
   top: 0;

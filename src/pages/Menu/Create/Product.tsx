@@ -8,6 +8,7 @@ import { client } from "@app/config";
 import { STATUS } from "@app/constants";
 
 import { createProductAtom } from "../tree";
+import { toastAtom } from "../Toast/store";
 
 interface UpdateCategory {
   label: string;
@@ -41,6 +42,11 @@ const postProductAtom = atom(
 
       set(postProductStatusAtom, STATUS.RESOLVED);
       set(createProductAtom, product);
+      set(toastAtom, {
+        key: String(product.productId),
+        type: "success",
+        message: `Product ${product.label} added`,
+      });
     } catch (error) {
       set(postProductStatusAtom, STATUS.REJECTED);
     }

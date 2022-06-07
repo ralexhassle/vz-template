@@ -24,6 +24,11 @@ interface Category {
   enabled: boolean;
 }
 
+interface OrderProduct {
+  productId: number;
+  order: number;
+}
+
 interface Product {
   productId: number;
   categoryId: number;

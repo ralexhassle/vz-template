@@ -1,4 +1,5 @@
 import { useCallback, useEffect } from "react";
+import { keyframes } from "@emotion/react";
 import { useUpdateAtom } from "jotai/utils";
 import styled from "@emotion/styled";
 
@@ -15,9 +16,10 @@ function Icon({ isSelected }: { isSelected: boolean }) {
 
 interface Props {
   isSelected: boolean;
+  isLoading: boolean;
   category: API.Category;
 }
-function SelectCategory({ isSelected, category }: Props) {
+function SelectCategory({ isSelected, category, isLoading }: Props) {
   const toggleSelectCategory = useUpdateAtom(toggleSelectCategoryAtom);
   const setCategory = useUpdateAtom(selectedCategoriesAtom);
 
@@ -34,6 +36,19 @@ function SelectCategory({ isSelected, category }: Props) {
     });
   }, [isSelected, setCategory, category]);
 
+  if (isLoading) {
+    return (
+      <Button onClick={toggleSelect} disabled>
+        <SelectIconContainer
+          data-is-selected={isSelected}
+          data-selected="category"
+        >
+          <LoaderIcon />
+        </SelectIconContainer>
+      </Button>
+    );
+  }
+
   return (
     <Button onClick={toggleSelect}>
       <SelectIconContainer
@@ -45,6 +60,26 @@ function SelectCategory({ isSelected, category }: Props) {
     </Button>
   );
 }
+
+const rotate = keyframes`
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+`;
+
+const LoaderIcon = styled("div")`
+  width: 14px;
+  height: 14px;
+  box-sizing: border-box;
+  border: 2px solid;
+  border-radius: 100%;
+  border-color: #e0e0e0;
+  border-right-color: #616161;
+  animation: ${rotate} 1s linear infinite;
+`;
 
 const SelectIconContainer = styled("div")`
   display: flex;

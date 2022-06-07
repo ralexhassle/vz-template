@@ -1,14 +1,19 @@
 import { BrowserRouter } from "react-router-dom";
 import { createRoot } from "react-dom/client";
 import { css, Global } from "@emotion/react";
+import { QueryClientProvider, QueryClient } from "react-query";
 
 import Pages from "@pages";
+
+const queryClient = new QueryClient();
 
 function Root() {
   return (
     <BrowserRouter>
-      <Pages />
-      <Global styles={styles} />
+      <QueryClientProvider client={queryClient}>
+        <Pages />
+        <Global styles={styles} />
+      </QueryClientProvider>
     </BrowserRouter>
   );
 }
@@ -18,6 +23,7 @@ const styles = css`
 
   body {
     margin: 0;
+    width: 100%;
     font-family: "Montserrat", sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;

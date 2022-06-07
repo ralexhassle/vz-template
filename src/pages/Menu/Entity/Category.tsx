@@ -16,7 +16,9 @@ import {
   toggleAtomFamily,
   levelAtomFamily,
   isCategorySelectedAtomFamily,
+  isLoadingAtomFamily,
 } from "../tree";
+import DragIndicator from "./DragIndicator";
 
 interface CategoryProps {
   id: API.Category["categoryId"];
@@ -52,6 +54,7 @@ function Category({ id, children }: CategoryProps) {
 interface EditableCategoryProps {
   id: API.Category["categoryId"];
   order: number;
+  onDragEnd: (type: "product" | "category") => void;
   move: (dragIndex: number, hoverIndex: number) => void;
   children: React.ReactNode;
 }
@@ -61,12 +64,13 @@ interface EditableCategoryProps {
  * It can be selected, moved, updated or deleted.
  */
 function EditableCategory(props: EditableCategoryProps) {
-  const { id, order, move, children } = props;
+  const { id, order, move, children, onDragEnd } = props;
   const ref = useRef<HTMLDivElement>(null);
 
   const [{ isOpen }, toggle] = useAtom(toggleAtomFamily(id));
   const category = useAtomValue(categoriesAtomFamily(id));
   const level = useAtomValue(levelAtomFamily(category.categoryId));
+  const { isLoading } = useAtomValue(isLoadingAtomFamily(category.parentId));
   const isSelected = useAtomValue(
     isCategorySelectedAtomFamily(category.categoryId)
   );
@@ -100,8 +104,9 @@ function EditableCategory(props: EditableCategoryProps) {
 
   const [{ isDragging }, drag] = useDrag({
     type: String(category.parentId),
-    canDrag: isSelected && !isOpen,
+    canDrag: isSelected && !isOpen && !isLoading,
     item: () => ({ id, order, type: "category" }),
+    end: () => onDragEnd("category"),
     collect: (monitor: DragSourceMonitor<APP.DragItem>) => ({
       isDragging: monitor.isDragging(),
     }),
@@ -114,27 +119,36 @@ function EditableCategory(props: EditableCategoryProps) {
   drag(drop(ref));
 
   return (
-    <CategoryContainer
-      ref={ref}
-      data-handler-id={handlerId}
-      data-is-dragging={isDragging}
-      data-category-level={level}
-      data-category
-    >
-      <CategorHeader>
-        {!isOpen && <Select.Category {...{ category, isSelected }} />}
-        <ToggleButton onClick={toggleOpen} type="button">
-          <Description>
-            <span>{category.description}</span>
-            {!category.enabled && <Unavalaible>Indisponible</Unavalaible>}
-          </Description>
-          <ToggleIndicator isOpen={isOpen} />
-        </ToggleButton>
-      </CategorHeader>
-      {isOpen && <Children>{children}</Children>}
-    </CategoryContainer>
+    <CategoryRow ref={ref} data-handler-id={handlerId}>
+      <CategoryContainer
+        data-category
+        data-is-dragging={isDragging}
+        data-category-level={level}
+        data-category-selected={isSelected}
+      >
+        <CategorHeader>
+          {!isOpen && (
+            <Select.Category {...{ category, isSelected, isLoading }} />
+          )}
+          <ToggleButton onClick={toggleOpen} type="button">
+            <Description>
+              <span>{category.description}</span>
+              {!category.enabled && <Unavalaible>Indisponible</Unavalaible>}
+            </Description>
+            <ToggleIndicator isOpen={isOpen} />
+          </ToggleButton>
+        </CategorHeader>
+        {isOpen && <Children>{children}</Children>}
+      </CategoryContainer>
+      {!isOpen && !isLoading && <DragIndicator {...{ isSelected }} />}
+    </CategoryRow>
   );
 }
+
+const CategoryRow = styled("div")`
+  display: flex;
+  align-items: center;
+`;
 
 const Children = styled("div")`
   display: flex;
@@ -194,9 +208,12 @@ const CategorHeader = styled("div")`
 const CategoryContainer = styled("div")`
   display: flex;
   flex-direction: column;
+  flex: 1;
 
-  &[data-is-dragging="true"] {
-    opacity: 0.5;
+  transition: background-color 1000ms ease-out;
+
+  &[data-category-selected="true"][data-is-dragging="true"] {
+    background-color: rgb(211, 230, 239);
   }
 `;
 

@@ -12,6 +12,7 @@ import { RootEntities } from "./Entity";
 import ActionButton from "./ActionButton";
 
 import { createEntitiesAtom, isEditableAtom, menuAtom } from "./tree";
+import Toast from "./Toast";
 
 interface MenuTreeProps {
   isEditable: boolean;
@@ -133,6 +134,7 @@ function Menu() {
         </DndProvider>
       </Suspense>
       <ActionButton />
+      <Toast />
     </Root>
   );
 }

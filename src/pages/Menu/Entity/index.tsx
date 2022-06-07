@@ -1,8 +1,11 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
 import { Fragment, useCallback } from "react";
 import { useAtomValue, useAtom } from "jotai";
+import { useUpdateAtom } from "jotai/utils";
+import { useMutation } from "react-query";
 
 import { isEmpty } from "@app/utils";
+import { client } from "@app/config";
 
 import Create from "../Create";
 import Product from "./Product";
@@ -12,7 +15,9 @@ import {
   getChildrenAtomFamily,
   childrenAtomFamily,
   levelAtomFamily,
+  isLoadingAtomFamily,
 } from "../tree";
+import { toastAtom } from "../Toast/store";
 
 const ROOT_ENTITY_ID = Infinity;
 
@@ -48,8 +53,61 @@ interface EditableEntitiesProps {
  * create an intermediate children atom family.
  */
 function EditableEntities({ parentId }: EditableEntitiesProps) {
+  const setLoading = useUpdateAtom(isLoadingAtomFamily(parentId));
   const children = useAtomValue(getChildrenAtomFamily(parentId));
   const [siblings, setSiblings] = useAtom(childrenAtomFamily(children));
+  const toast = useUpdateAtom(toastAtom);
+
+  const { mutate: mutateProductOrder } = useMutation(
+    [parentId],
+    client.Menu.patchOrderProducts,
+    {
+      onSuccess: () => {
+        const message = "Produit déplacé !";
+        setLoading({ id: parentId, isLoading: false });
+        toast({ key: String(parentId), message, type: "success" });
+      },
+    }
+  );
+
+  const { mutate: mutateCategoryOrder } = useMutation(
+    [parentId],
+    client.Menu.patchOrderProducts,
+    {
+      onSuccess: () => {
+        const message = "Catégorie déplacée !";
+        setLoading({ id: parentId, isLoading: false });
+        toast({ key: String(parentId), message, type: "success" });
+      },
+    }
+  );
+
+  const onDragEnd = useCallback(
+    (type: "product" | "category") => {
+      const ordered = siblings.map(({ id, order }) => ({
+        productId: id,
+        order,
+      }));
+
+      if (type === "product") {
+        setLoading({ id: parentId, isLoading: true });
+        toast({ key: String(parentId), message: "", type: "loading" });
+        return mutateProductOrder(ordered);
+      }
+
+      setLoading({ id: parentId, isLoading: true });
+      toast({ key: String(parentId), message: "", type: "loading" });
+      return mutateCategoryOrder(ordered);
+    },
+    [
+      siblings,
+      mutateProductOrder,
+      mutateCategoryOrder,
+      toast,
+      parentId,
+      setLoading,
+    ]
+  );
 
   const move = useCallback(
     (dragIndex: number, hoverIndex: number) => {
@@ -58,7 +116,7 @@ function EditableEntities({ parentId }: EditableEntitiesProps) {
         const newChildren = [...prev];
         newChildren.splice(dragIndex, 1);
         newChildren.splice(hoverIndex, 0, dragItem);
-        return newChildren;
+        return newChildren.map((child, index) => ({ ...child, order: index }));
       });
     },
     [setSiblings]
@@ -66,9 +124,9 @@ function EditableEntities({ parentId }: EditableEntitiesProps) {
 
   const renderSibling = useCallback(
     (child: APP.Child, order: number) => (
-      <EditableEntity key={child.id} {...{ child, order, move }} />
+      <EditableEntity key={child.id} {...{ child, order, move, onDragEnd }} />
     ),
-    [move]
+    [move, onDragEnd]
   );
 
   if (isEmpty(siblings)) {
@@ -87,6 +145,7 @@ function EditableEntities({ parentId }: EditableEntitiesProps) {
 interface EditableEntityProps {
   child: APP.Child;
   order: number;
+  onDragEnd: (type: "product" | "category") => void;
   move: (dragIndex: number, hoverIndex: number) => void;
 }
 /**
@@ -94,18 +153,23 @@ interface EditableEntityProps {
  * It also render the children if it's a category. Depending on the entity type,
  * the container will render a different entity component: a product or a category
  */
-function EditableEntity({ child, order, move }: EditableEntityProps) {
+function EditableEntity({
+  child,
+  order,
+  move,
+  onDragEnd,
+}: EditableEntityProps) {
   const { id, type } = child;
 
   if (type === "category") {
     return (
-      <Category.Edit key={id} {...{ id, order, move }}>
+      <Category.Edit key={id} {...{ id, order, move, onDragEnd }}>
         <EditableEntities parentId={id} />
       </Category.Edit>
     );
   }
 
-  return <Product.Edit key={id} {...{ id, order, move }} />;
+  return <Product.Edit key={id} {...{ id, order, move, onDragEnd }} />;
 }
 
 interface EmptyEditableEntityProps {

@@ -14,6 +14,7 @@ import {
   productsAtomFamily,
   levelAtomFamily,
   isProductSelectedAtomFamily,
+  isLoadingAtomFamily,
 } from "../tree";
 
 const getFrenchPrice = (value: number) => {
@@ -191,17 +192,19 @@ function Product({ id }: ProductProps) {
 interface EditableProductProps {
   id: API.Product["productId"];
   order: number;
+  onDragEnd: (type: "product" | "category") => void;
   move: (dragIndex: number, hoverIndex: number) => void;
 }
 /**
  * A "editable "Product" is a node leaf in the tree. It does not
  * have any children. It can be selected, moved, updated or deleted.
  */
-function EditableProduct({ id, order, move }: EditableProductProps) {
+function EditableProduct({ id, order, move, onDragEnd }: EditableProductProps) {
   const ref = useRef<HTMLDivElement>(null);
 
   const product = useAtomValue(productsAtomFamily(id));
   const level = useAtomValue(levelAtomFamily(product.categoryId));
+  const { isLoading } = useAtomValue(isLoadingAtomFamily(product.categoryId));
   const isSelected = useAtomValue(
     isProductSelectedAtomFamily(product.productId)
   );
@@ -235,7 +238,8 @@ function EditableProduct({ id, order, move }: EditableProductProps) {
 
   const [{ isDragging }, drag] = useDrag({
     type: "product",
-    canDrag: isSelected,
+    canDrag: isSelected && !isLoading,
+    end: () => onDragEnd("product"),
     item: () => ({ id, order, type: "product", parentId: product.categoryId }),
     collect: (monitor: DragSourceMonitor<APP.DragItem>) => ({
       isDragging: monitor.isDragging(),
@@ -251,11 +255,12 @@ function EditableProduct({ id, order, move }: EditableProductProps) {
       data-is-dragging={isDragging}
       data-product-level={level}
       data-product-selected={isSelected}
+      data-product-loading={isLoading}
     >
-      <Select.Product {...{ product, isSelected }}>
+      <Select.Product {...{ product, isSelected, isLoading }}>
         <ProductBody {...{ product }} />
       </Select.Product>
-      <DragIndicator {...{ isSelected }} />
+      {!isLoading && <DragIndicator {...{ isSelected }} />}
     </ProductContainer>
   );
 }
@@ -276,9 +281,6 @@ const ProductContainer = styled("div")`
 
   &[data-product-selected="true"][data-is-dragging="true"] {
     background-color: #41d2f22b;
-  }
-
-  &[data-is-dragging="true"] {
   }
 `;
 

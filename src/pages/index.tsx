@@ -1,6 +1,8 @@
 import { NavLink, Outlet, Route, Routes } from "react-router-dom";
 import styled from "@emotion/styled";
 
+import { useScrollPosition } from "@app/hooks/useScrollLock";
+
 import Menu from "./Menu";
 import Games from "./Games";
 import Playground from "./Playground";
@@ -10,6 +12,8 @@ function Introduction() {
 }
 
 function App() {
+  useScrollPosition();
+
   return (
     <Container>
       <h1>Vazee Template</h1>
