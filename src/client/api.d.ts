@@ -29,6 +29,11 @@ interface OrderProduct {
   order: number;
 }
 
+interface OrderCategory {
+  categoryId: number;
+  order: number;
+}
+
 interface Product {
   productId: number;
   categoryId: number;

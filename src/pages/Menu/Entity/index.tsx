@@ -53,7 +53,8 @@ interface EditableEntitiesProps {
  * create an intermediate children atom family.
  */
 function EditableEntities({ parentId }: EditableEntitiesProps) {
-  const setLoading = useUpdateAtom(isLoadingAtomFamily(parentId));
+  const loadingId = parentId === ROOT_ENTITY_ID ? null : parentId;
+  const setLoading = useUpdateAtom(isLoadingAtomFamily(loadingId));
   const children = useAtomValue(getChildrenAtomFamily(parentId));
   const [siblings, setSiblings] = useAtom(childrenAtomFamily(children));
   const toast = useUpdateAtom(toastAtom);
@@ -72,7 +73,7 @@ function EditableEntities({ parentId }: EditableEntitiesProps) {
 
   const { mutate: mutateCategoryOrder } = useMutation(
     [parentId],
-    client.Menu.patchOrderProducts,
+    client.Menu.patchOrderCategories,
     {
       onSuccess: () => {
         const message = "Catégorie déplacée !";
@@ -84,17 +85,20 @@ function EditableEntities({ parentId }: EditableEntitiesProps) {
 
   const onDragEnd = useCallback(
     (type: "product" | "category") => {
-      const ordered = siblings.map(({ id, order }) => ({
-        productId: id,
-        order,
-      }));
-
       if (type === "product") {
+        const ordered = siblings.map(({ id, order }) => ({
+          productId: id,
+          order,
+        }));
         setLoading({ id: parentId, isLoading: true });
         toast({ key: String(parentId), message: "", type: "loading" });
         return mutateProductOrder(ordered);
       }
 
+      const ordered = siblings.map(({ id, order }) => ({
+        categoryId: id,
+        order,
+      }));
       setLoading({ id: parentId, isLoading: true });
       toast({ key: String(parentId), message: "", type: "loading" });
       return mutateCategoryOrder(ordered);

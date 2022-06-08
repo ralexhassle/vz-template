@@ -42,7 +42,7 @@ class Menu extends Domain {
     return new Promise<API.Product[]>((resolve) => {
       setTimeout(() => {
         resolve(products);
-      }, 1000);
+      }, 500);
     });
   }
 
@@ -50,7 +50,7 @@ class Menu extends Domain {
     return new Promise<API.Category[]>((resolve) => {
       setTimeout(() => {
         resolve(products);
-      }, 1000);
+      }, 500);
     });
   }
 
@@ -58,7 +58,15 @@ class Menu extends Domain {
     return new Promise<API.Product[]>((resolve) => {
       setTimeout(() => {
         resolve(products);
-      }, 1000);
+      }, 500);
+    });
+  }
+
+  public async patchOrderCategories(categories: API.OrderCategory[]) {
+    return new Promise<API.Category[]>((resolve) => {
+      setTimeout(() => {
+        resolve(categories);
+      }, 500);
     });
   }
 }

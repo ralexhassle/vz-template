@@ -1,7 +1,7 @@
 import { keyframes } from "@emotion/react";
 import styled from "@emotion/styled";
 import { useUpdateAtom } from "jotai/utils";
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 import { selectedProductsAtom, toggleSelectProductAtom } from "../tree";
 
@@ -17,16 +17,23 @@ function Icon({ isSelected }: { isSelected: boolean }) {
 interface Props {
   isSelected: boolean;
   isLoading: boolean;
+  isNew: boolean;
   product: API.Product;
   children: React.ReactNode;
 }
-function SelectProduct({ product, isSelected, isLoading, children }: Props) {
+function SelectProduct(props: Props) {
+  const { product, isSelected, isLoading, isNew, children } = props;
+  const ref = useRef<HTMLButtonElement>(null);
   const toggleProduct = useUpdateAtom(toggleSelectProductAtom);
   const setProduct = useUpdateAtom(selectedProductsAtom);
 
   const toggleSelect = useCallback(() => {
     toggleProduct(product);
   }, [toggleProduct, product]);
+
+  useEffect(() => {
+    if (isNew) ref.current?.focus();
+  }, [isNew]);
 
   useEffect(() => {
     setProduct((prev) => {
@@ -52,7 +59,7 @@ function SelectProduct({ product, isSelected, isLoading, children }: Props) {
   }
 
   return (
-    <Button onClick={toggleSelect}>
+    <Button onClick={toggleSelect} ref={ref}>
       <SelectIconContainer
         data-is-selected={isSelected}
         data-selected="product"

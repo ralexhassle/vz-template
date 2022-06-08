@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
 import { DragSourceMonitor, useDrag, useDrop } from "react-dnd";
-import { useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useAtomValue, useAtom } from "jotai";
 import styled from "@emotion/styled";
 
@@ -8,8 +8,8 @@ import type { Identifier, XYCoord } from "dnd-core";
 
 import Select from "../Select";
 import Like from "../Like";
-
 import ToggleIndicator from "./ToggleIndicator";
+import DragIndicator from "./DragIndicator";
 
 import {
   categoriesAtomFamily,
@@ -17,8 +17,9 @@ import {
   levelAtomFamily,
   isCategorySelectedAtomFamily,
   isLoadingAtomFamily,
+  isLastSelectedAtomFamily,
+  isNewCategoryAtom,
 } from "../tree";
-import DragIndicator from "./DragIndicator";
 
 interface CategoryProps {
   id: API.Category["categoryId"];
@@ -66,14 +67,21 @@ interface EditableCategoryProps {
 function EditableCategory(props: EditableCategoryProps) {
   const { id, order, move, children, onDragEnd } = props;
   const ref = useRef<HTMLDivElement>(null);
+  const refButton = useRef<HTMLButtonElement>(null);
 
   const [{ isOpen }, toggle] = useAtom(toggleAtomFamily(id));
   const category = useAtomValue(categoriesAtomFamily(id));
+  const isNew = useAtomValue(isNewCategoryAtom(category.categoryId));
   const level = useAtomValue(levelAtomFamily(category.categoryId));
   const { isLoading } = useAtomValue(isLoadingAtomFamily(category.parentId));
+  const isLastSelected = useAtomValue(isLastSelectedAtomFamily(id));
   const isSelected = useAtomValue(
     isCategorySelectedAtomFamily(category.categoryId)
   );
+
+  useEffect(() => {
+    if (isNew) refButton.current?.focus();
+  }, [isNew]);
 
   const [{ handlerId }, drop] = useDrop<
     APP.DragItem,
@@ -130,7 +138,7 @@ function EditableCategory(props: EditableCategoryProps) {
           {!isOpen && (
             <Select.Category {...{ category, isSelected, isLoading }} />
           )}
-          <ToggleButton onClick={toggleOpen} type="button">
+          <ToggleButton onClick={toggleOpen} type="button" ref={refButton}>
             <Description>
               <span>{category.description}</span>
               {!category.enabled && <Unavalaible>Indisponible</Unavalaible>}
@@ -140,7 +148,7 @@ function EditableCategory(props: EditableCategoryProps) {
         </CategorHeader>
         {isOpen && <Children>{children}</Children>}
       </CategoryContainer>
-      {!isOpen && !isLoading && <DragIndicator {...{ isSelected }} />}
+      {!isOpen && isLastSelected && <DragIndicator {...{ isSelected }} />}
     </CategoryRow>
   );
 }

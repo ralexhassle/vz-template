@@ -1,5 +1,5 @@
 import { DragSourceMonitor, useDrag, useDrop } from "react-dnd";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { atom, useAtomValue } from "jotai";
 import { atomFamily } from "jotai/utils";
 import styled from "@emotion/styled";
@@ -15,6 +15,8 @@ import {
   levelAtomFamily,
   isProductSelectedAtomFamily,
   isLoadingAtomFamily,
+  isLastSelectedAtomFamily,
+  isNewProductAtom,
 } from "../tree";
 
 const getFrenchPrice = (value: number) => {
@@ -203,8 +205,10 @@ function EditableProduct({ id, order, move, onDragEnd }: EditableProductProps) {
   const ref = useRef<HTMLDivElement>(null);
 
   const product = useAtomValue(productsAtomFamily(id));
+  const isNew = useAtomValue(isNewProductAtom(product.productId));
   const level = useAtomValue(levelAtomFamily(product.categoryId));
   const { isLoading } = useAtomValue(isLoadingAtomFamily(product.categoryId));
+  const isLastSelected = useAtomValue(isLastSelectedAtomFamily(id));
   const isSelected = useAtomValue(
     isProductSelectedAtomFamily(product.productId)
   );
@@ -257,10 +261,10 @@ function EditableProduct({ id, order, move, onDragEnd }: EditableProductProps) {
       data-product-selected={isSelected}
       data-product-loading={isLoading}
     >
-      <Select.Product {...{ product, isSelected, isLoading }}>
+      <Select.Product {...{ product, isSelected, isLoading, isNew }}>
         <ProductBody {...{ product }} />
       </Select.Product>
-      {!isLoading && <DragIndicator {...{ isSelected }} />}
+      {isLastSelected && <DragIndicator {...{ isSelected }} />}
     </ProductContainer>
   );
 }
