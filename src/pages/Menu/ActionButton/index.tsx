@@ -172,7 +172,7 @@ function ActionButton() {
           />
         </Action>
         <Action index={2}>
-          <Enable.Product {...{ products }} />
+          <Enable.Product {...{ products, categoryId }} />
         </Action>
       </Fragment>
     );
@@ -197,7 +197,7 @@ function ActionButton() {
           />
         </Action>
         <Action index={2}>
-          <Enable.Category {...{ categories }} />
+          <Enable.Category {...{ categories, parentId }} />
         </Action>
       </Fragment>
     );

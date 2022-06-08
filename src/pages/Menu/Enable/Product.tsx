@@ -1,9 +1,11 @@
+import { client } from "@app/config";
 import styled from "@emotion/styled";
 import { useUpdateAtom } from "jotai/utils";
-import { useCallback } from "react";
+import { useCallback, useReducer } from "react";
+import { useMutation } from "react-query";
 import { toastAtom } from "../Toast/store";
 
-import { updateProductAtom } from "../tree";
+import { isLoadingAtomFamily, updateProductAtom } from "../tree";
 
 function ToggleIcon() {
   return (
@@ -14,19 +16,36 @@ function ToggleIcon() {
   );
 }
 
+function makeId(products: API.Product[]) {
+  return products.map((product) => product.productId).join(",");
+}
+
 interface Props {
   products: API.Product[];
+  categoryId: API.Product["categoryId"];
 }
-function EnableProduct({ products }: Props) {
+function EnableProduct({ products, categoryId }: Props) {
+  const setLoading = useUpdateAtom(isLoadingAtomFamily(categoryId));
+  const [key] = useReducer((s) => s, makeId(products));
   const update = useUpdateAtom(updateProductAtom);
   const toast = useUpdateAtom(toastAtom);
 
+  const { mutate } = useMutation([key], client.Menu.patchOrderProducts, {
+    onSuccess: (data) => {
+      setLoading({ id: categoryId, isLoading: false });
+      const message = "Produits modifiés !";
+      toast({ key, message, type: "success" });
+      data.forEach((product) =>
+        update({ ...product, enabled: !product.enabled })
+      );
+    },
+  });
+
   const onClick = useCallback(() => {
-    products.forEach((product) => {
-      update({ ...product, enabled: !product.enabled });
-      toast({ message: `Product ${product.label} enabled`, type: "success" });
-    });
-  }, [products, update, toast]);
+    setLoading({ id: categoryId, isLoading: true });
+    toast({ key, message: "Modification en cours...", type: "loading" });
+    mutate(products);
+  }, [setLoading, toast, categoryId, key, mutate, products]);
 
   return (
     <Button onClick={onClick} type="button" data-enable="product">

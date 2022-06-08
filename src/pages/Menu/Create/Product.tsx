@@ -1,4 +1,11 @@
-import { FormEvent, useEffect, useReducer, useState } from "react";
+import {
+  FormEvent,
+  useCallback,
+  useEffect,
+  useReducer,
+  useRef,
+  useState,
+} from "react";
 import { useUpdateAtom } from "jotai/utils";
 import { atom, useAtom } from "jotai";
 import styled from "@emotion/styled";
@@ -6,6 +13,7 @@ import styled from "@emotion/styled";
 import { Dialog, Spinner, Pushable, TextInput } from "@app/components";
 import { client } from "@app/config";
 import { STATUS } from "@app/constants";
+import { useFocus } from "@app/hooks";
 
 import { createProductAtom } from "../tree";
 import { toastAtom } from "../Toast/store";
@@ -53,6 +61,8 @@ const postProductAtom = atom(
   }
 );
 
+// a hook to focus on the input when the dialog is open
+
 interface AddProductProps {
   toggleDialog: VoidFunction;
   categoryId: API.Category["categoryId"];
@@ -61,6 +71,7 @@ function AddProductDialog({ toggleDialog, categoryId }: AddProductProps) {
   const [label, set] = useState("");
   const [status, setStatus] = useAtom(postProductStatusAtom);
   const postProduct = useUpdateAtom(postProductAtom);
+  const ref = useFocus();
 
   useEffect(() => () => setStatus(STATUS.IDLE), [setStatus]);
 
@@ -73,7 +84,11 @@ function AddProductDialog({ toggleDialog, categoryId }: AddProductProps) {
     <EditProductContainer onSubmit={onSubmit}>
       <Spinner isLoading={status === STATUS.PENDING} onSuccess={toggleDialog}>
         <Title>Créer un produit</Title>
-        <TextInputStyled value={label} onChange={(e) => set(e.target.value)} />
+        <TextInputStyled
+          ref={ref}
+          value={label}
+          onChange={(e) => set(e.target.value)}
+        />
         <Pushable disabled={status === STATUS.PENDING}>Ajouter</Pushable>
       </Spinner>
     </EditProductContainer>
@@ -124,11 +139,17 @@ interface Props {
   parentId: API.Category["categoryId"];
 }
 function CreateProduct({ parentId }: Props) {
-  const [isDialogOpen, toggleDialog] = useReducer((s) => !s, false);
+  const [isDialogOpen, toggle] = useReducer((s) => !s, false);
+  const ref = useRef<HTMLButtonElement>(null);
+
+  const toggleDialog = useCallback(() => {
+    toggle();
+    ref.current?.focus();
+  }, [toggle]);
 
   return (
     <Root>
-      <Button onClick={toggleDialog} type="button">
+      <Button ref={ref} onClick={toggleDialog} type="button">
         <IconContainer>
           <AddIcon />
         </IconContainer>

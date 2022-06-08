@@ -2,7 +2,7 @@ import { animated, config, useSpring } from "@react-spring/web";
 import styled from "@emotion/styled";
 
 import { PORTALS } from "@constants";
-import { useScrollLock } from "@app/hooks";
+import { useKeyPress, useScrollLock } from "@app/hooks";
 
 import Portal from "../Portal";
 
@@ -33,6 +33,7 @@ interface Props {
 
 function Dialog({ message, children, dismiss }: Props) {
   useScrollLock();
+  useKeyPress("Escape", dismiss);
 
   const { scale } = useSpring<{ scale: number }>({
     scale: 1,

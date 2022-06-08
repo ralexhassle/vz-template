@@ -24,12 +24,16 @@ export const getSelectedProductCountAtom = atom(
 
 export const resetSelectedCategoriesAtom = atom(
   (get) => get(selectedCategoriesAtom),
-  (_get, set) => set(selectedCategoriesAtom, {})
+  (_get, set) => {
+    set(selectedCategoriesAtom, {});
+  }
 );
 
 export const resetSelectedProductsAtom = atom(
   (get) => get(selectedProductsAtom),
-  (_get, set) => set(selectedProductsAtom, {})
+  (_get, set) => {
+    set(selectedProductsAtom, {});
+  }
 );
 
 /**
@@ -184,7 +188,7 @@ export const createCategoryAtom = atom(
   (get, set, create: API.Category) => {
     const { categoryId } = create;
     set(categoriesAtom, (prev) => ({ ...prev, [categoryId]: create }));
-
+    set(newlyCreatedCategoryAtom, create);
     set(entitiesAtom, (prev) => {
       const parentId = create.parentId === null ? Infinity : create.parentId;
       const parent = get(entitiesAtom)[parentId];
@@ -214,7 +218,7 @@ export const createCategoryAtom = atom(
 export const createProductAtom = atom(null, (get, set, create: API.Product) => {
   const { productId, categoryId: parentId } = create;
   set(productsAtom, (prev) => ({ ...prev, [productId]: create }));
-
+  set(newlyCreatedProductAtom, create);
   set(entitiesAtom, (prev) => {
     const parent = get(entitiesAtom)[create.categoryId];
 
@@ -309,6 +313,13 @@ export const toggleLikeProductAtom = atom(
   }
 );
 
+export const isLastSelectedAtomFamily = atomFamily((id: number | null) =>
+  atom((get) => get(lastSelectedAtom).at(-1) === id)
+);
+
+type NumberOrNull = number | null;
+export const lastSelectedAtom = atom<NumberOrNull[]>([]);
+
 export const toggleSelectProductAtom = atom(
   null,
   (get, set, currentProduct: API.Product) => {
@@ -318,14 +329,20 @@ export const toggleSelectProductAtom = atom(
     set(resetSelectedCategoriesAtom, {});
 
     Object.values(products).forEach((product: API.Product) => {
+      // already selected remove from collection
       if (product.productId === productId) {
+        set(lastSelectedAtom, (p) => p.filter((id) => id !== productId));
         set(selectedProductsAtom, (prev) => {
           const { [product.productId]: _, ...selectedProducts } = prev;
           return selectedProducts;
         });
       }
 
+      // if in another category remove from collection
       if (product.categoryId !== categoryId) {
+        set(lastSelectedAtom, (p) =>
+          p.filter((id) => id !== product.productId)
+        );
         set(selectedProductsAtom, (prev) => {
           const { [product.productId]: _, ...selectedProducts } = prev;
           return selectedProducts;
@@ -333,7 +350,9 @@ export const toggleSelectProductAtom = atom(
       }
     });
 
+    // if not selected add to the collection
     if (!isDefined(products[productId])) {
+      set(lastSelectedAtom, (prev) => [...prev, productId]);
       set(selectedProductsAtom, (prev) => ({
         ...prev,
         [productId]: currentProduct,
@@ -352,6 +371,7 @@ export const toggleSelectCategoryAtom = atom(
 
     Object.values(categories).forEach((category: API.Category) => {
       if (category.categoryId === categoryId) {
+        set(lastSelectedAtom, (p) => p.filter((id) => id !== categoryId));
         set(selectedCategoriesAtom, (prev) => {
           const { [category.categoryId]: _, ...selectedProducts } = prev;
           return selectedProducts;
@@ -359,6 +379,9 @@ export const toggleSelectCategoryAtom = atom(
       }
 
       if (category.parentId !== parentId) {
+        set(lastSelectedAtom, (p) =>
+          p.filter((id) => id !== category.categoryId)
+        );
         set(selectedCategoriesAtom, (prev) => {
           const { [category.categoryId]: _, ...selectedProducts } = prev;
           return selectedProducts;
@@ -367,6 +390,7 @@ export const toggleSelectCategoryAtom = atom(
     });
 
     if (!isDefined(categories[categoryId])) {
+      set(lastSelectedAtom, (prev) => [...prev, categoryId]);
       set(selectedCategoriesAtom, (prev) => ({
         ...prev,
         [categoryId]: currentCategory,
@@ -378,4 +402,15 @@ export const toggleSelectCategoryAtom = atom(
 export const isLoadingAtomFamily = atomFamily(
   (id: number | null) => atom({ id, isLoading: false }),
   (a, b) => a === b
+);
+
+export const newlyCreatedCategoryAtom = atom<API.Category | null>(null);
+export const newlyCreatedProductAtom = atom<API.Product | null>(null);
+
+export const isNewCategoryAtom = atomFamily((id: number | null) =>
+  atom((get) => get(newlyCreatedCategoryAtom)?.categoryId === id || false)
+);
+
+export const isNewProductAtom = atomFamily((id: number | null) =>
+  atom((get) => get(newlyCreatedProductAtom)?.productId === id || false)
 );

@@ -1,4 +1,11 @@
-import { FormEvent, useEffect, useReducer, useState } from "react";
+import {
+  FormEvent,
+  useCallback,
+  useEffect,
+  useReducer,
+  useRef,
+  useState,
+} from "react";
 import { atom, useAtom } from "jotai";
 import { useUpdateAtom } from "jotai/utils";
 import styled from "@emotion/styled";
@@ -6,6 +13,7 @@ import styled from "@emotion/styled";
 import { Dialog, Spinner, Pushable, TextInput } from "@app/components";
 import { client } from "@app/config";
 import { STATUS } from "@app/constants";
+import { useFocus } from "@app/hooks";
 
 import { createCategoryAtom } from "../tree";
 
@@ -44,6 +52,7 @@ function AddCategoryDialog({ toggleDialog, parentId }: AddProductProps) {
   const [description, set] = useState("");
   const [status, setStatus] = useAtom(postCategoryStatusAtom);
   const postCategory = useUpdateAtom(postCategoryAtom);
+  const ref = useFocus();
 
   useEffect(
     () => () => setStatus(STATUS.IDLE),
@@ -60,6 +69,7 @@ function AddCategoryDialog({ toggleDialog, parentId }: AddProductProps) {
       <Spinner isLoading={status === STATUS.PENDING} onSuccess={toggleDialog}>
         <Title>Créer une catégorie</Title>
         <TextInputStyled
+          ref={ref}
           value={description}
           onChange={(e) => set(e.target.value)}
         />
@@ -113,11 +123,17 @@ interface Props {
   parentId: API.Category["parentId"];
 }
 function CreateCategory({ parentId }: Props) {
-  const [isOpen, toggleDialog] = useReducer((s) => !s, false);
+  const [isOpen, toggle] = useReducer((s) => !s, false);
+  const ref = useRef<HTMLButtonElement>(null);
+
+  const toggleDialog = useCallback(() => {
+    toggle();
+    ref.current?.focus();
+  }, [toggle]);
 
   return (
     <Root>
-      <Button onClick={toggleDialog} type="button">
+      <Button ref={ref} onClick={toggleDialog} type="button">
         <IconContainer>
           <AddIcon />
         </IconContainer>

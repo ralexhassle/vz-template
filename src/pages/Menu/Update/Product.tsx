@@ -3,6 +3,8 @@ import { useUpdateAtom } from "jotai/utils";
 import styled from "@emotion/styled";
 
 import { Checkbox, Dialog, Pushable, TextInput } from "@app/components";
+import { useFocus } from "@app/hooks";
+
 import { updateProductAtom } from "../tree";
 
 interface UpdateProductDialogProps {
@@ -14,6 +16,7 @@ function UpdateProductDialog({ product, toggle }: UpdateProductDialogProps) {
   const [description, setDescription] = useState(product.description || "");
   const [isEnabled, toggleEnabled] = useReducer((s) => !s, product.enabled);
   const update = useUpdateAtom(updateProductAtom);
+  const ref = useFocus();
 
   const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -31,6 +34,7 @@ function UpdateProductDialog({ product, toggle }: UpdateProductDialogProps) {
       <TextInputContainer>
         <TextInputLabel>Nom du produit</TextInputLabel>
         <TextInputStyled
+          ref={ref}
           value={label}
           onChange={(e) => setLabel(e.target.value)}
         />
